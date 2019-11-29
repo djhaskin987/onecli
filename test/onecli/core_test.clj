@@ -22,7 +22,7 @@
                          :garden true
                          :hedge :tall
                          :pets ["horse" "dog"]
-                         :unparsed ["henceforth"
+                         :commands ["henceforth"
                                     "and"
                                     "forever"]}
                          (parse-args ["-g"
