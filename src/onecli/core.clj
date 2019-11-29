@@ -50,6 +50,10 @@
     :keys
     [
      aliases
+     boxes
+     flags
+     lists
+     maps
      transforms
      ]
     :or
@@ -75,9 +79,10 @@
         m
         (let [arg (first arguments)
               rargs (rest arguments)]
+
           (if-let [[_ action clean-opt]
                    (re-matches
-                     #"--(enable|disable|add|reset|set)-(\w+)" arg)]
+                     #"--(enable|disable|add|reset|set|assoc)-(\w+)" arg)]
             (let [kopt (keyword clean-opt)
                   kact (keyword action)]
               (cond
@@ -86,10 +91,11 @@
                 (= kact :enable)
                 (recur (conj m [kopt true]) rargs)
                 (= kact :reset)
-                (recur (conj m [kopt []]) rargs)
+                (recur (conj m [kopt nil]) rargs)
                 (or
                   (= kact :set)
-                  (= kact :add))
+                  (= kact :add)
+                  (= kact :assoc))
                 (if (empty? rargs)
                   (throw (ex-info "not enough arguments supplied"
                                   {:option kopt
@@ -104,12 +110,16 @@
                           v)
                         ]
                     (recur
-                      (if (= kact :set)
-                        (conj m [kopt groomed-val])
-                        (update-in m [kopt] #(if
+                      (cond (= kact :assoc)
+                            (into [] (string/split v map-sep-pat))
+                            thing
+                            (= kact :add)
+                         (update-in m [kopt] #(if
                                                (empty? %)
                                                []
-                                               (conj % groomed-val))))
+                                               (conj % groomed-val)))
+                        (conj m [kopt groomed-val])
+                        )
                       rrargs)))))
             (recur
               (update-in m [:commands] #(conj % arg))
@@ -220,21 +230,27 @@
              it)
         (reduce merge it)))
 
+;; aliases are search/replacements
+;; boxes are values
+;; flags are booleans
+;; lists are lists
+;; maps are maps
+;; transforms are simple filters
 (defn run
   [
    program-name
    description &
    {
     :keys [
-           transforms
            aliases
-           list-sep
-           kv-sep
-           read-fns
-           maps
-           lists
            boxes
+           defaults
            flags
+           kv-sep
+           list-sep
+           lists
+           maps
+           transforms
            ]
     :or {
          list-sep ","
@@ -313,7 +329,7 @@
         expanded-cli (expand-option-packs global-options)
         effective-options
           (as->
-            [subcommand-option-defaults
+            [defaults
              expanded-cfg
              (reduce dissoc
                      expanded-env
@@ -334,9 +350,9 @@
                            x))) it)
             (reduce merge (hash-map) it))]
     (check-required! effective-options subcmd-cli)
-    ((:function subcmd-cli)
-       effective-options
-       arguments))
+    ((get-in functions
+             (:commands effective-options))
+       effective-options)
 ;; Subproc package system forks processess,
 ;; which causes the VM to hang unless this is called
 ;; https://dev.clojure.org/jira/browse/CLJ-959
