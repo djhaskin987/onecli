@@ -214,16 +214,13 @@
             "(LIST|MAP|JSON|ITEM|FLAG)"
             "_"
             "(\\w+)"))
-        expanded-alias-env
-        (reduce (fn [m [k v]]
-                  (if-let [realname (get aliases k)]
-                    (assoc m realname v)
-                    m))
-                (hash-map)
-                env-vars)
-        expanded-explicit-env
+        expanded-env
         (into (hash-map)
-              (filter (fn [[k v]] (nil? (get aliases k))) env-vars))
+              (map (fn [[k v]]
+                     (if-let [other (get aliases k)]
+                       [other v]
+                       [k v]))
+                   env-vars))
         list-sep-pat
         (re-pattern
           (str
@@ -240,70 +237,64 @@
             map-sep
             "\\E(.*)$"))
         ]
-    (letfn [(process [from to]
-              (reduce
-                (fn [m [k v]]
-                  (if-let [[_ label clean-opt]
-                           (re-matches
-                             var-pattern
-                             k)]
-                    (let [kopt (keyword (string/lower-case (string/replace clean-opt #"_" "-")))
-                          kabel (keyword (string/lower-case label))
-                          t (kopt transforms)]
-                      (assoc m kopt
+    (reduce (fn [m [k v]]
+              (if-let [[_ label clean-opt]
+                       (re-matches
+                         var-pattern
+                         k)]
+                (let [kopt (keyword (string/lower-case (string/replace clean-opt #"_" "-")))
+                      kabel (keyword (string/lower-case label))
+                      t (kopt transforms)]
+                  (assoc m kopt
+                         (cond
+                           (= kabel :flag)
+                           (let [ins (string/lower-case v)]
                              (cond
-                               (= kabel :flag)
-                               (let [ins (string/lower-case v)]
-                                 (cond
-                                   (or (= ins "1")
-                                       (= ins "yes")
-                                       (= ins "true"))
-                                   true
-                                   (or (= ins "0")
-                                       (= ins "no")
-                                       (= ins "false"))
-                                   false
-                                   :else
-                                   (throw
-                                     (ex-info
-                                       "environment variable value not recognized as a boolean value"
-                                       {:function :parse-env-vars
-                                        :option kopt
-                                        :label kabel
-                                        :var k
-                                        :val v}))))
-                               (= kabel :item)
-                               (if (nil? t) v (t v))
-                               (= kabel :json)
-                               (json/parse-string v true)
-                               (= kabel :map)
-                               (into {}
-                                     (map
-                                       (fn please-work [i]
-                                         (if-let [[_ k v] (re-matches map-sep-pat i)]
-                                           [(keyword k) (if (nil? t) v (t v))]
-                                           (throw (ex-info "no key value pairs detected"
-                                                           {:item i}))))
-                                       (string/split v list-sep-pat)))
-                               (= kabel :list)
-                               (map (fn [x] (if (nil? t) x (t x)))
-                                    (string/split v list-sep-pat))
+                               (or (= ins "1")
+                                   (= ins "yes")
+                                   (= ins "true"))
+                               true
+                               (or (= ins "0")
+                                   (= ins "no")
+                                   (= ins "false"))
+                               false
                                :else
                                (throw
                                  (ex-info
-                                   "nothing makes sense in this world"
-                                   {:function ::parse-env-vars
+                                   "environment variable value not recognized as a boolean value"
+                                   {:function :parse-env-vars
                                     :option kopt
                                     :label kabel
                                     :var k
-                                    :val v})))))
-                    m))
-                to
-                from))]
-      (process
-        (process (hash-map) expanded-alias-env)
-        expanded-explicit-env)
-        )))
+                                    :val v}))))
+                           (= kabel :item)
+                           (if (nil? t) v (t v))
+                           (= kabel :json)
+                           (json/parse-string v true)
+                           (= kabel :map)
+                           (into {}
+                                 (map
+                                   (fn please-work [i]
+                                     (if-let [[_ k v] (re-matches map-sep-pat i)]
+                                       [(keyword k) (if (nil? t) v (t v))]
+                                       (throw (ex-info "no key value pairs detected"
+                                                       {:item i}))))
+                                   (string/split v list-sep-pat)))
+                           (= kabel :list)
+                           (map (fn [x] (if (nil? t) x (t x)))
+                                (string/split v list-sep-pat))
+                           :else
+                           (throw
+                             (ex-info
+                               "nothing makes sense in this world"
+                               {:function ::parse-env-vars
+                                :option kopt
+                                :label kabel
+                                :var k
+                                :val v})))))
+                m))
+            (hash-map)
+            expanded-env)))
 
 (defn- expand-option-packs
   [available-option-packs options]

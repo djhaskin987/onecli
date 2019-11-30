@@ -1,7 +1,6 @@
 (ns onecli.core-test
   (:require [clojure.test :refer :all]
             [onecli.core :refer :all]))
-
 (deftest test-env-vars
          (testing "That no environment variables works."
                   (is (empty? (parse-env-vars
@@ -12,19 +11,7 @@
                                (parse-env-vars
                                  {:program-name "testing"
                                   :env-vars {"TESTING_FLAG_PETS" "a,b"}}))))
-         (testing "that aliases do not take precedence over the real thing"
-                  (is (= {:type "mage"}
-                         (parse-env-vars
-                           {
-                            :program-name "testing"
-                            :env-vars {
-                                       "TESTING_ITEM_TYPE" "mage"
-                                       "TYPE" "warrior"
-                                       }
-                            :aliases {
-                                      "TYPE" "TESTING_ITEM_TYPE"
-                                      }
-                            }))))
+
          (testing "a normal case"
                   (is (=
                         {:money-bags {
