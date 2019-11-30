@@ -295,10 +295,10 @@
 (defn- expand-option-packs
   [available-option-packs options]
   (dbg (as-> (:option-packs options) it
-        (mapv available-option-packs it)
-        (into {} it)
-        (merge it options)
-        (dissoc it :option-packs))))
+        (dbg (mapv available-option-packs (dbg it)))
+        (dbg (into {} it))
+        (dbg (merge it options))
+        (dbg (dissoc it :option-packs)))))
 
 (defn display-config!
   [options]
@@ -343,7 +343,7 @@
          ["options"] display-config!
          }
         effective-functions
-        (merge base-functions functions)
+        (dbg (merge (dbg base-functions) (dbg functions)))
         cli-options
         (dbg (parse-args (into params [
                                   [:args (dbg args)]
@@ -418,7 +418,7 @@
     ;; https://dev.clojure.org/jira/browse/CLJ-959
     (if-let [func (get effective-functions (dbg (:commands (dbg effective-options))))]
       (System/exit
-        (func effective-options))
+        ((dbg func) effective-options))
       (exit-error 1
                   (string/join
                     \newline
