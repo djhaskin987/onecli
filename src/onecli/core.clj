@@ -302,9 +302,10 @@
 
 (defn display-config!
   [options]
-  (println (json/generate-string options)))
+  (println (json/generate-string options))
+  0)
 
-(defn run
+(defn run!
   [
    {
     :keys [
@@ -417,10 +418,8 @@
     ;; which causes the VM to hang unless this is called
     ;; https://dev.clojure.org/jira/browse/CLJ-959
     (if-let [func (get effective-functions (dbg (:commands (dbg effective-options))))]
-      (System/exit
-        ((dbg func) effective-options))
-      (exit-error 1
-                  (string/join
+        ((dbg func) effective-options)
+      (throw (ex-info (string/join
                     \newline
                     (into
                         ["Unknown command."
@@ -434,5 +433,5 @@
                                "  - `"
                                (string/join " " commands)
                                "`"))
-                           (keys effective-functions)))))
-      )))
+                           (keys effective-functions))))
+                      {:options effective-options})))))

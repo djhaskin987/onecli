@@ -4,6 +4,7 @@
   (:gen-class))
 
 (defn -main [& args]
-  (core/run {:program-name "onecli"
-             :args args
-             :env (System/getenv)}))
+  (System/exit
+    (core/run! {:program-name "onecli"
+               :args args
+               :env (System/getenv)})))
