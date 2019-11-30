@@ -1,4 +1,4 @@
-﻿(ns onecli.cli
+(ns onecli.cli
   (:require
       [onecli.core :as core])
   (gen-class))
