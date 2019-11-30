@@ -214,13 +214,17 @@
             "(LIST|MAP|JSON|ITEM|FLAG)"
             "_"
             "(\\w+)"))
-        expanded-env
+        expanded-alias-env
         (into (hash-map)
               (map (fn [[k v]]
                      (if-let [other (get aliases k)]
                        [other v]
                        [k v]))
-                   env-vars))
+                   (filter (fn [[k v]]
+                             (not (nil? (get aliases k))))
+                           env-vars)))
+        expanded-explicit-env
+        (filter (fn [[k v]] (nil? (get aliases k))) env-vars)
         list-sep-pat
         (re-pattern
           (str
@@ -237,7 +241,7 @@
             map-sep
             "\\E(.*)$"))
         ]
-    (reduce (fn [m [k v]]
+    (letfn [(process [e] (reduce (fn [m [k v]]
               (if-let [[_ label clean-opt]
                        (re-matches
                          var-pattern
@@ -294,7 +298,10 @@
                                 :val v})))))
                 m))
             (hash-map)
-            expanded-env)))
+            e))]
+      (merge
+        (process expanded-alias-env)
+        (process expanded-explicit-env)))))
 
 (defn- expand-option-packs
   [available-option-packs options]

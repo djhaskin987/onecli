@@ -37,4 +37,4 @@ cat > "${test_home}/onecli.json" << ONECLI
 }
 ONECLI
 ls ./onecli.json
-java -jar "${root_path}/target/uberjar/onecli-0.1.0-SNAPSHOT-standalone.jar" options show #| jq '.one.two' | grep -q '^238$'
+java -jar "${root_path}/target/uberjar/onecli-0.1.0-SNAPSHOT-standalone.jar" options show --json-fart '123' #| jq '.one.two' | grep -q '^238$'
