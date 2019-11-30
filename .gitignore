@@ -1,4 +1,5 @@
 /target
+/test/resources/data/all/
 /classes
 /checkouts
 profiles.clj

@@ -7,7 +7,7 @@ then
     echo "This script must be run from the root of the project."
 fi
 root_path=${PWD}
-test_home=test/resources/data/all
+test_home="${root_path}/test/resources/data/all"
 rm -rf "${test_home}"
 mkdir -p "${test_home}"
 cd "${test_home}"
@@ -31,10 +31,10 @@ cat > "${test_home}/onecli.json" << ONECLI
 "three": 543
 },
 "zed": {
-1: "a",
-2: "b"
+"a": true,
+"b": false
 }
 }
 ONECLI
-
-java -jar "${root_path}/target/uberjar/onecli-0.1.0-SNAPSHOT-standalone.jar" options show | jq '.one.two' | grep -q '^238$'
+ls ./onecli.json
+java -jar "${root_path}/target/uberjar/onecli-0.1.0-SNAPSHOT-standalone.jar" options show #| jq '.one.two' | grep -q '^238$'

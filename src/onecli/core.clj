@@ -298,16 +298,24 @@
 
 (defn- expand-option-packs
   [available-option-packs options]
-  (as-> (:option-packs options) it
+  (dbg (as-> (:option-packs options) it
         (mapv available-option-packs it)
         (into {} it)
         (merge it options)
-        (dissoc it :option-packs)))
+        (dissoc it :option-packs))))
 
 (defn display-config!
   [options]
   (println (json/generate-string options))
   0)
+
+(defn try-file [fparts]
+  (let [f (io/file
+            (string/join
+              java.io.File/separator
+              fparts))]
+    (when (.exists f)
+      [f])))
 
 (defn go!
   [
@@ -365,52 +373,36 @@
           []
           [
            (if-let [app-data (System/getenv "AppData")]
-             [(io/file
-                (string/join
-                  java.io.File/separator
-                  [app-data
-                   program-name
-                   "config.json"]))]
-             [])
+             (try-file [app-data
+                        program-name
+                        "config.json"]))
            (if-let [home (System/getenv "HOME")]
-             [(io/file
-                (string/join
-                  java.io.File/separator
-                  [home
-                   (str
-                     "."
-                     program-name
-                     ".json")]))]
-             [])
-           [(io/file (string/join java.io.File/separator
-                                  ["." (str
-                                         program-name
-                                         ".json")]))]
-           (if-let [cf (:config-files cli-options)]
-             cf
-             [])
-           (if-let [cf (:config-files env-options)]
-             cf
-             [])
+             (try-file [home
+                        (str
+                          "."
+                          program-name
+                          ".json")]))
+           (try-file
+             ["." (str
+                    program-name
+                    ".json")])
            ])
         expanded-cfg
         (reduce merge
                 (map (fn [file]
-                       (try
-                         (expand-option-packs
-                           available-option-packs
-                           (json/parse-string
-                             (default-slurp file) true))
-                         (catch Exception e
-                           (hash-map))))
+                       (dbg (expand-option-packs
+                                available-option-packs
+                                (json/parse-string
+                                  (default-slurp (dbg file)) true))
+                              ))
                      config-files))
         expanded-env (expand-option-packs available-option-packs env-options)
         expanded-cli (expand-option-packs available-option-packs cli-options)
         effective-options
-        (as-> [defaults
-               expanded-cfg
-               (dissoc expanded-env :config-files)
-               (dissoc expanded-cli :config-files)
+        (as-> [(dbg defaults)
+               (dbg expanded-cfg)
+               (dbg (dissoc expanded-env :config-files))
+               (dbg (dissoc expanded-cli :config-files))
                ] it
               (mapv (fn [x] (into {}
                                   (filter
