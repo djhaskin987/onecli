@@ -5,6 +5,6 @@
 
 (defn -main [& args]
   (System/exit
-    (core/run! {:program-name "onecli"
+    (core/go! {:program-name "onecli"
                :args args
                :env (System/getenv)})))

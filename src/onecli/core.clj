@@ -7,11 +7,11 @@
     [clojure.string :as string]
     ))
 
-(defmacro dbg [body]
-  `(let [x# ~body]
-     (println "dbg:" '~body "=" x#)
-     (flush)
-     x#))
+;;(defmacro dbg [body]
+;;  `(let [x# ~body]
+;;     (println "dbg:" '~body "=" x#)
+;;     (flush)
+;;     x#))
 
 (defn exit-error [status msg]
   (.println ^java.io.PrintWriter *err* msg)
@@ -119,7 +119,7 @@
 
           (if-let [[_ action clean-opt]
                    (re-matches
-                     #"--(disable|enable|reset|assoc|add|set|json)-(.+)" (dbg arg))]
+                     #"--(disable|enable|reset|assoc|add|set|json)-(.+)" arg)]
             (let [kopt (keyword (string/lower-case clean-opt))
                   kact (keyword action)
                   t (kopt transforms)]
@@ -177,7 +177,7 @@
             ))))))
 
 (defn
-  get-env-vars
+  parse-env-vars
   [{
     :keys
     [
@@ -262,7 +262,7 @@
                                (throw
                                  (ex-info
                                    "environment variable value not recognized as a boolean value"
-                                   {:function :get-env-vars
+                                   {:function :parse-env-vars
                                     :option kopt
                                     :label kabel
                                     :var k
@@ -283,7 +283,7 @@
                            (throw
                              (ex-info
                                "nothing makes sense in this world"
-                               {:function ::get-env-vars
+                               {:function ::parse-env-vars
                                 :option kopt
                                 :label kabel
                                 :var k
@@ -294,18 +294,18 @@
 
 (defn- expand-option-packs
   [available-option-packs options]
-  (dbg (as-> (:option-packs options) it
-        (dbg (mapv available-option-packs (dbg it)))
-        (dbg (into {} it))
-        (dbg (merge it options))
-        (dbg (dissoc it :option-packs)))))
+  (as-> (:option-packs options) it
+        (mapv available-option-packs it)
+        (into {} it)
+        (merge it options)
+        (dissoc it :option-packs)))
 
 (defn display-config!
   [options]
   (println (json/generate-string options))
   0)
 
-(defn run!
+(defn go!
   [
    {
     :keys [
@@ -344,19 +344,19 @@
          ["options"] display-config!
          }
         effective-functions
-        (dbg (merge (dbg base-functions) (dbg functions)))
+        (merge base-functions functions)
         cli-options
-        (dbg (parse-args (into params [
-                                  [:args (dbg args)]
+        (parse-args (into params [
+                                  [:args args]
                                   [:aliases cli-aliases]
-                                  ])))
+                                  ]))
         env-options
-        (dbg (get-env-vars (into params [
+        (parse-env-vars (into params [
                                     [:env-vars env]
                                     [:aliases env-aliases]
-                                    ])))
+                                    ]))
         config-files
-        (dbg (reduce
+        (reduce
           into
           []
           [
@@ -388,7 +388,7 @@
            (if-let [cf (:config-files env-options)]
              cf
              [])
-           ]))
+           ])
         expanded-cfg
         (reduce merge
                 (map (fn [file]
@@ -408,17 +408,17 @@
                (dissoc expanded-env :config-files)
                (dissoc expanded-cli :config-files)
                ] it
-              (dbg (mapv (fn [x] (into {}
+              (mapv (fn [x] (into {}
                                   (filter
                                     #(not (nil? (second %)))
-                                    x))) (dbg it)))
-              (reduce merge (hash-map) (dbg it)))
+                                    x))) it)
+              (reduce merge (hash-map) it))
         ]
     ;; Subproc package system forks processess,
     ;; which causes the VM to hang unless this is called
     ;; https://dev.clojure.org/jira/browse/CLJ-959
-    (if-let [func (get effective-functions (dbg (:commands (dbg effective-options))))]
-        ((dbg func) effective-options)
+    (if-let [func (get effective-functions (:commands effective-options))]
+        (func effective-options)
       (throw (ex-info (string/join
                     \newline
                     (into
@@ -435,3 +435,11 @@
                                "`"))
                            (keys effective-functions))))
                       {:options effective-options})))))
+
+(defn default-spit [loc stuff]
+  (clojure.core/spit loc (pr-str stuff) :encoding "UTF-8"))
+
+(defn pretty-spit [loc stuff]
+  (with-open
+    [ow (io/writer loc :encoding "UTF-8")]
+    (pprint/pprint stuff ow)))
