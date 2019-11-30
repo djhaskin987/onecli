@@ -7,6 +7,20 @@
     [clojure.string :as string]
     ))
 
+(defmacro dbg [body]
+  `(let [x# ~body]
+     (println "dbg:" '~body "=" x#)
+     (flush)
+     x#))
+
+(defn exit-error [status msg]
+  (.println ^java.io.PrintWriter *err* msg)
+  (System/exit status))
+
+(defn exit-out [status msg]
+  (println msg)
+  (System/exit status))
+
 ;; UTF-8 by default :)
 (defn base-slurp [loc]
   (let [input (if (= loc "-")
@@ -48,21 +62,21 @@
     (base-slurp resource)))
 
 (def transforms {
-  :int
-  #(java.lang.Long/parseLong %)
-  :float
-  #(java.lang.Double/parseDouble %)
-  :json
-  json/parse-string
-  :file
-  default-slurp})
+                 :int
+                 #(java.lang.Long/parseLong %)
+                 :float
+                 #(java.lang.Double/parseDouble %)
+                 :json
+                 json/parse-string
+                 :file
+                 default-slurp})
 
 (defn parse-args
   [
-   args &
    {
     :keys
     [
+     args
      aliases
      transforms
      map-sep
@@ -94,8 +108,10 @@
                  arg))
              args)
         ]
-    (loop [m {}
-           arguments expanded-args]
+    (loop [
+           m {}
+           arguments expanded-args
+           ]
       (if (empty? arguments)
         m
         (let [arg (first arguments)
@@ -103,7 +119,7 @@
 
           (if-let [[_ action clean-opt]
                    (re-matches
-                     #"--(disable|enable|reset|assoc|add|set|json)-(.+)" arg)]
+                     #"--(disable|enable|reset|assoc|add|set|json)-(.+)" (dbg arg))]
             (let [kopt (keyword (string/lower-case clean-opt))
                   kact (keyword action)
                   t (kopt transforms)]
@@ -267,7 +283,7 @@
                            (throw
                              (ex-info
                                "nothing makes sense in this world"
-                               {:function :get-env-vars
+                               {:function ::get-env-vars
                                 :option kopt
                                 :label kabel
                                 :var k
@@ -278,11 +294,11 @@
 
 (defn- expand-option-packs
   [available-option-packs options]
-  (as-> (:option-packs options) it
+  (dbg (as-> (:option-packs options) it
         (mapv available-option-packs it)
         (into {} it)
         (merge it options)
-        (dissoc it :option-packs)))
+        (dissoc it :option-packs))))
 
 (defn display-config!
   [options]
@@ -292,6 +308,8 @@
   [
    {
     :keys [
+           args
+           env
            cli-aliases
            env-aliases
            available-option-packs
@@ -323,21 +341,21 @@
         {
          ["options" "show"] display-config!
          ["options"] display-config!
-        }
+         }
         effective-functions
         (merge base-functions functions)
         cli-options
-        (parse-args (into params [
-                                  [:arguments *command-line-args*]
+        (dbg (parse-args (into params [
+                                  [:args (dbg args)]
                                   [:aliases cli-aliases]
-                                  ]))
+                                  ])))
         env-options
-        (get-env-vars (into params [
-                                    [:env-vars (System/getenv)]
+        (dbg (get-env-vars (into params [
+                                    [:env-vars env]
                                     [:aliases env-aliases]
-                                    ]))
+                                    ])))
         config-files
-        (reduce
+        (dbg (reduce
           into
           []
           [
@@ -369,7 +387,7 @@
            (if-let [cf (:config-files env-options)]
              cf
              [])
-           ])
+           ]))
         expanded-cfg
         (reduce merge
                 (map (fn [file]
@@ -389,15 +407,32 @@
                (dissoc expanded-env :config-files)
                (dissoc expanded-cli :config-files)
                ] it
-              (mapv (fn [x] (into {}
+              (dbg (mapv (fn [x] (into {}
                                   (filter
                                     #(not (nil? (second %)))
-                                    x))) it)
-              (reduce merge (hash-map) it))
+                                    x))) (dbg it)))
+              (reduce merge (hash-map) (dbg it)))
         ]
     ;; Subproc package system forks processess,
     ;; which causes the VM to hang unless this is called
     ;; https://dev.clojure.org/jira/browse/CLJ-959
-    (System/exit
-      ((get effective-functions (:commands effective-options))
-       effective-options))))
+    (if-let [func (get effective-functions (dbg (:commands (dbg effective-options))))]
+      (System/exit
+        (func effective-options))
+      (exit-error 1
+                  (string/join
+                    \newline
+                    (into
+                        ["Unknown command."
+                         "Command given:"
+                         (str "  - `"
+                              (string/join " " (:commands effective-options))
+                              "`")
+                         "Available commands:"]
+                      (map (fn [commands]
+                             (str
+                               "  - `"
+                               (string/join " " commands)
+                               "`"))
+                           (keys effective-functions)))))
+      )))
