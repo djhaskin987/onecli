@@ -5,9 +5,10 @@
                       :url "https://www.eclipse.org/legal/epl-2.0/"}
             :dependencies [
                            [org.clojure/clojure "1.10.0"]
-                           [cheshire "5.9.0"]]
-
-
+                           [cheshire "5.9.0"]
+                           [clj-http "3.10.0"]
+                           ]
+            :main onecli.cli
             :global-vars {*warn-on-reflection* true}
             :plugins [[lein-licenses "0.2.2"]
                       [lein-print "0.1.0"]]
@@ -19,6 +20,7 @@
                                             [pjstadig/humane-test-output "0.9.0"]
                                             [org.clojure/clojure "1.10.1"]
                                             [cheshire "5.9.0"]
+                                            [clj-http "3.10.0"]
                                             ]
                              :plugins [[test2junit "1.3.3"]]
                              :test2junit-output-dir "target/test-results"
@@ -27,5 +29,6 @@
                              }
                        :uberjar {:aot [
                                        onecli.core
+                                       onecli.cli
                                        ]}}
                        :target-path "target/%s/")
