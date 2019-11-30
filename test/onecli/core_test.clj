@@ -2,44 +2,58 @@
   (:require [clojure.test :refer :all]
             [onecli.core :refer :all]))
 (deftest test-env-vars
-  (testing "That no environment variables works."
-    (is (empty? (parse-env-vars
-                  {:program-name "testing"
-                   :env-vars {}}))))
-   (testing "a normal case"
-     (is (=
-          {:money-bags {
-                        "money" 38.3
-                        }
-           :how-many {
-                      "so" "so"
-                      "many" "many"
-                      }
-           :gnomes 17
-           :garden true
-           :yard false
-           :clogged "drain"
-           :hedge :tall
-           :pets ["horse" "dog"]}
-          (parse-env-vars
-            {
-             :program-name "testing"
-             :env-vars {"TESTING_MAP_MONEY_BAGS" "money=38"
-                        "TESTING_MAP_HOW_MANY" "so=so,many=many"
-                        "TESTING_ITEM_GNOMES" "17"
-                        "TESTING_FLAG_GARDEN" "true"
-                        "TESTING_FLAG_YARD" "false"
-                        "CLOG" "drain"
-                        "TESTING_FLAG_PETS" "horse,dog"}
-             :transforms {
-                          :gnomes (:int transforms)
-                          :money-bags (:float transforms)
-                          :hedge keyword
-                          }
-             :aliases
-             {
-              "CLOG" "TESTING_ITEM_CLOG"
-              }})))))
+         (testing "That no environment variables works."
+                  (is (empty? (parse-env-vars
+                                {:program-name "testing"
+                                 :env-vars {}}))))
+         (testing "That something should be thrown"
+                  (is (thrown? Exception
+                               (parse-env-vars
+                                 {:program-name "testing"
+                                  :env-vars {"TESTING_FLAG_PETS" "a,b"}}))))
+
+         (testing "a normal case"
+                  (is (=
+                        {:money-bags {
+                                      :money 38.3
+                                      }
+                         :how-many {
+                                    :so "so"
+                                    :many "many"
+                                    }
+                         :gnomes 17
+                         :hedge :tall
+                         :garden true
+                         :yard false
+                         :clogged "drain"
+                         :abc {:rags [{:to "riches"
+                                       :years 11}
+                                      {:to "ashes"
+                                       :years 12.2
+                                       :pleasant false}]}
+                         :pets ["horse" "dog"]}
+                        (parse-env-vars
+                          {
+                           :program-name "testing"
+                           :env-vars {"TESTING_MAP_MONEY_BAGS" "money=38.3"
+                                      "TESTING_MAP_HOW_MANY" "so=so,many=many"
+                                      "TESTING_ITEM_GNOMES" "17"
+                                      "TESTING_ITEM_HEDGE" "tall"
+                                      "TESTING_FLAG_GARDEN" "true"
+                                      "TESTING_FLAG_YARD" "false"
+
+                                      "TESTING_JSON_ABC" "{\"rags\": [{\"to\": \"riches\", \"years\": 11},{\"to\": \"ashes\", \"years\": 12.2, \"pleasant\": false}]}"
+                                      "CLOG" "drain"
+                                      "TESTING_LIST_PETS" "horse,dog"}
+                           :transforms {
+                                        :gnomes (:int transforms)
+                                        :money-bags (:float transforms)
+                                        :hedge keyword
+                                        }
+                           :aliases
+                           {
+                            "CLOG" "TESTING_ITEM_CLOGGED"
+                            }})))))
 
 (deftest test-arg-parser
          (testing "that no arguments doesn't fail."
@@ -66,7 +80,12 @@
                          :pets ["horse" "dog"]
                          :commands ["henceforth"
                                     "and"
-                                    "forever"]}
+                                    "forever"]
+                         :abc {:rags [{:to "riches"
+                                 :years 11}
+                                {:to "ashes"
+                                 :years 12}]}
+                         }
                          (parse-args {:args ["--json-abc"
                                       "{\"rags\": [{\"to\": \"riches\", \"years\": 11},{\"to\": \"ashes\", \"years\": 12}]}"
                                       "--assoc-money-bags"

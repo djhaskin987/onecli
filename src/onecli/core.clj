@@ -7,11 +7,11 @@
     [clojure.string :as string]
     ))
 
-;;(defmacro dbg [body]
-;;  `(let [x# ~body]
-;;     (println "dbg:" '~body "=" x#)
-;;     (flush)
-;;     x#))
+(defmacro dbg [body]
+  `(let [x# ~body]
+     (println "dbg:" '~body "=" x#)
+     (flush)
+     x#))
 
 (defn exit-error [status msg]
   (.println ^java.io.PrintWriter *err* msg)
@@ -272,10 +272,14 @@
                            (= kabel :json)
                            (json/parse-string v true)
                            (= kabel :map)
-                           (->> (string/split v list-sep-pat)
-                             (map #(if-let [[_ k v] (re-matches map-sep-pat %)] [k v] [% nil]))
-                             (map [[k v]] [(keyword k) (if (nil? t) v (t v))])
-                             (into {}))
+                           (into {}
+                                 (map
+                                   (fn please-work [i]
+                                     (if-let [[_ k v] (re-matches map-sep-pat i)]
+                                       [(keyword k) (if (nil? t) v (t v))]
+                                       (throw (ex-info "no key value pairs detected"
+                                                       {:item i}))))
+                                   (string/split v list-sep-pat)))
                            (= kabel :list)
                            (map (fn [x] (if (nil? t) x (t x)))
                                 (string/split v list-sep-pat))
