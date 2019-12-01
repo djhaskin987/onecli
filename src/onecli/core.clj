@@ -7,11 +7,11 @@
     [clojure.string :as string]
     ))
 
-(defmacro dbg [body]
-  `(let [x# ~body]
-     (println "dbg:" '~body "=" x#)
-     (flush)
-     x#))
+;;(defmacro dbg [body]
+;;  `(let [x# ~body]
+;;     (println "dbg:" '~body "=" x#)
+;;     (flush)
+;;     x#))
 
 (defn exit-error [status msg]
   (.println ^java.io.PrintWriter *err* msg)
@@ -305,11 +305,11 @@
 
 (defn- expand-option-packs
   [available-option-packs options]
-  (dbg (as-> (:option-packs options) it
+  (as-> (:option-packs options) it
         (mapv available-option-packs it)
         (into {} it)
         (merge it options)
-        (dissoc it :option-packs))))
+        (dissoc it :option-packs)))
 
 (defn display-config!
   [options]
@@ -397,19 +397,19 @@
         expanded-cfg
         (reduce merge
                 (map (fn [file]
-                       (dbg (expand-option-packs
+                       (expand-option-packs
                                 available-option-packs
                                 (json/parse-string
-                                  (default-slurp (dbg file)) true))
-                              ))
+                                  (default-slurp file) true))
+                              )
                      config-files))
         expanded-env (expand-option-packs available-option-packs env-options)
         expanded-cli (expand-option-packs available-option-packs cli-options)
         effective-options
-        (as-> [(dbg defaults)
-               (dbg expanded-cfg)
-               (dbg (dissoc expanded-env :config-files))
-               (dbg (dissoc expanded-cli :config-files))
+        (as-> [defaults
+               expanded-cfg
+               (dissoc expanded-env :config-files)
+               (dissoc expanded-cli :config-files)
                ] it
               (mapv (fn [x] (into {}
                                   (filter
@@ -420,24 +420,28 @@
     ;; Subproc package system forks processess,
     ;; which causes the VM to hang unless this is called
     ;; https://dev.clojure.org/jira/browse/CLJ-959
-    (if-let [func (get effective-functions (:commands effective-options))]
+    (if-let [func (get effective-functions
+                       (if-let [commands (:commands effective-options)]
+                         commands
+                         []))]
         (func effective-options)
-      (throw (ex-info (string/join
-                    \newline
-                    (into
-                        ["Unknown command."
-                         "Command given:"
-                         (str "  - `"
-                              (string/join " " (:commands effective-options))
-                              "`")
-                         "Available commands:"]
-                      (map (fn [commands]
-                             (str
-                               "  - `"
-                               (string/join " " commands)
-                               "`"))
-                           (keys effective-functions))))
-                      {:options effective-options})))))
+      (exit-error
+        1
+        (string/join
+          \newline
+          (into
+            ["Unknown command."
+             "Command given:"
+             (str "  - `"
+                  (string/join " " (:commands effective-options))
+                  "`")
+             "Available commands:"]
+            (map (fn [commands]
+                   (str
+                     "  - `"
+                     (string/join " " commands)
+                     "`"))
+                 (keys effective-functions))))))))
 
 (defn default-spit [loc stuff]
   (clojure.core/spit loc (pr-str stuff) :encoding "UTF-8"))
