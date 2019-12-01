@@ -387,7 +387,8 @@
                                                 (string/trim-newline it)
                                                 (string/split it #"\n")
                                                 (map string/trim it)
-                                                (string/join \newline it))))))
+                                                (string/join \newline it)))
+                     0)))
           {}
           (merge base-functions functions))
         cli-options
