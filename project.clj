@@ -1,4 +1,4 @@
-(defproject onecli "0.2.0"
+(defproject onecli "0.3.0"
             :description "One CLI, for all people, for all time."
             :url "https://git.sr.ht/~djhaskin987/onecli"
             :license {:name "Eclipse Public License"
@@ -9,8 +9,12 @@
                            [clj-http "3.10.0"]
                            ]
             ;;:main onecli.cli
-            :global-vars {*warn-on-reflection* true}
-            :repl-options {:init-ns onecli.core}
+            :global-vars {
+                          *warn-on-reflection* true
+                          }
+            :repl-options {
+                           :init-ns onecli.core
+                           }
             :profiles {
                        :dev {
                              :dependencies [
@@ -28,11 +32,5 @@
                              :injections [(require 'pjstadig.humane-test-output)
                                           (pjstadig.humane-test-output/activate!)]
                              }
-                       :jar {:aot [
-                                   onecli.core
-                                   ]}
-                       :uberjar {:aot [
-                                       onecli.core
-                                       onecli.cli
-                                       ]}}
-                       :target-path "target/%s/")
+                       }
+            :target-path "target/%s/")
