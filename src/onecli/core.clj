@@ -312,6 +312,10 @@
         (dissoc it :option-packs)))
 
 (defn display-config!
+  "
+  Displays the effective configuration as provided either by environment
+  variables, by CLI arguments, or by configuration files.
+  "
   [options]
   (println (json/generate-string options))
   0)
@@ -359,11 +363,24 @@
     }]
   (let [base-functions
         {
-         ["options" "show"] display-config!
-         ["options"] display-config!
+         ["options" "show"] 'onecli.core/display-config!
+         ["options"] 'onecli.core/display-config!
          }
         effective-functions
-        (merge base-functions functions)
+        (reduce
+          (fn make-help-screens [m [c f]]
+            (assoc (assoc m c (resolve f))
+                   (conj c "help")
+                   (fn [options] (println (as-> f it
+                                                (resolve it)
+                                                (meta it)
+                                                (:doc it)
+                                                (string/trim-newline it)
+                                                (string/split it #"\n")
+                                                (map string/trim it)
+                                                (string/join \newline it))))))
+          {}
+          (merge base-functions functions))
         cli-options
         (parse-args (into params [
                                   [:args args]

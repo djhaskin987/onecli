@@ -22,7 +22,7 @@
                            :init-ns onecli.core
                            }
             :profiles {
-                       :test {
+                       :dev {
                              :dependencies [
                                             [pjstadig/humane-test-output "0.9.0"]
                                             [org.clojure/clojure "1.10.1"]
@@ -31,6 +31,8 @@
                                             ]
                              :plugins [
                                        [test2junit "1.3.3"]
+                                       [lein-licenses "0.2.2"]
+                                       [lein-print "0.1.0"]
                                        ]
                              :test2junit-output-dir "target/test-results"
                              :injections [(require 'pjstadig.humane-test-output)
