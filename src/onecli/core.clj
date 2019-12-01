@@ -152,7 +152,7 @@
                                     (if (nil? t)
                                       v
                                       (t v)))
-                          (ex-info "Argument not recognized as a key/value pair"
+                          (ex-info "argument not recognized as a key/value pair"
                                    {:option kopt
                                     :action kact
                                     :argument arg}))
@@ -371,7 +371,16 @@
           (fn make-help-screens [m [c f]]
             (assoc (assoc m c (resolve f))
                    (conj c "help")
-                   (fn [options] (println (as-> f it
+                   (fn [options]
+                     (println (str
+                                "Help page for `"
+                                (string/join
+                                  " "
+                                  (into [program-name]
+                                  c))
+                                "`:"
+                                ))
+                     (println (as-> f it
                                                 (resolve it)
                                                 (meta it)
                                                 (:doc it)

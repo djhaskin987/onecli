@@ -14,7 +14,6 @@
                            [cheshire "5.9.0"]
                            [clj-http "3.10.0"]
                            ]
-            ;;:main onecli.cli
             :global-vars {
                           *warn-on-reflection* true
                           }
@@ -22,6 +21,10 @@
                            :init-ns onecli.core
                            }
             :profiles {
+                       :uberjar {
+                                 :main onecli.cli
+                                 :aot :all
+                                 }
                        :dev {
                              :dependencies [
                                             [pjstadig/humane-test-output "0.9.0"]
