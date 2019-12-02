@@ -401,6 +401,8 @@
                                     [:env-vars env]
                                     [:aliases env-aliases]
                                     ]))
+        expanded-env (expand-option-packs available-option-packs env-options)
+        expanded-cli (expand-option-packs available-option-packs cli-options)
         config-files
         (reduce
           into
@@ -420,6 +422,8 @@
              ["." (str
                     program-name
                     ".json")])
+           (:config-files expanded-env)
+           (:config-files expanded-cli)
            ])
         expanded-cfg
         (reduce merge
@@ -430,8 +434,6 @@
                                   (default-slurp file) true))
                               )
                      config-files))
-        expanded-env (expand-option-packs available-option-packs env-options)
-        expanded-cli (expand-option-packs available-option-packs cli-options)
         effective-options
         (as-> [defaults
                expanded-cfg

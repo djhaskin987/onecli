@@ -8,6 +8,8 @@ then
 fi
 root_path=${PWD}
 test_home="${root_path}/test/resources/data/all"
+name=$(lein print :name | sed 's|"||g')
+version=$(lein print :version | sed 's|"||g')
 rm -rf "${test_home}"
 mkdir -p "${test_home}"
 cd "${test_home}"
@@ -23,7 +25,7 @@ lein uberjar
 #    fi
 #done
 
-java -jar "${root_path}/target/uberjar/onecli-0.1.0-SNAPSHOT-standalone.jar" options show
+java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" options show
 cat > "${test_home}/onecli.json" << ONECLI
 {
 "one": {
@@ -36,5 +38,28 @@ cat > "${test_home}/onecli.json" << ONECLI
 }
 }
 ONECLI
+cat > "${test_home}/a.json" << A
+{
+"afound": true
+}
+A
+cat > "${test_home}/b.json" << B
+{
+"bfound": true
+}
+B
 ls ./onecli.json
-java -jar "${root_path}/target/uberjar/onecli-0.1.0-SNAPSHOT-standalone.jar" options show --json-fart '123' #| jq '.one.two' | grep -q '^238$'
+
+answer=$(ONECLI_ITEM_ANONYMOUS_COWARD="I was never here" ONECLI_LIST_CONFIG_FILES="./a.json,./b.json" java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" options show --add-config-files '-' --json-fart '123' << ALSO
+{
+    "ifihadtodoitagain": "i would"
+}
+ALSO
+)
+
+if [ ! "${answer}" = '{"one":{"two":238,"three":543},"anonymous-coward":"I was never here","bfound":true,"commands":["options","show"],"fart":123,"ifihadtodoitagain":"i would","zed":{"a":true,"b":false},"afound":true,"andidont":"causealliwantisyou"}' ]
+then
+    echo "AAAAH"
+    exit 1
+fi
+

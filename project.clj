@@ -1,4 +1,4 @@
-(defproject onecli "0.6.0-SNAPSHOT"
+(defproject onecli "0.6.0"
             :description "One CLI, for all people, for all time."
             :url "https://git.sr.ht/~djhaskin987/onecli"
             :license {:name "Eclipse Public License"
