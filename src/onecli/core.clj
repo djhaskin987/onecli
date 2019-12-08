@@ -242,63 +242,63 @@
             "\\E(.*)$"))
         ]
     (letfn [(process [e] (reduce (fn [m [k v]]
-              (if-let [[_ label clean-opt]
-                       (re-matches
-                         var-pattern
-                         k)]
-                (let [kopt (keyword (string/lower-case (string/replace clean-opt #"_" "-")))
-                      kabel (keyword (string/lower-case label))
-                      t (kopt transforms)]
-                  (assoc m kopt
-                         (cond
-                           (= kabel :flag)
-                           (let [ins (string/lower-case v)]
-                             (cond
-                               (or (= ins "1")
-                                   (= ins "yes")
-                                   (= ins "true"))
-                               true
-                               (or (= ins "0")
-                                   (= ins "no")
-                                   (= ins "false"))
-                               false
-                               :else
-                               (throw
-                                 (ex-info
-                                   "environment variable value not recognized as a boolean value"
-                                   {:function :parse-env-vars
-                                    :option kopt
-                                    :label kabel
-                                    :var k
-                                    :val v}))))
-                           (= kabel :item)
-                           (if (nil? t) v (t v))
-                           (= kabel :json)
-                           (json/parse-string v true)
-                           (= kabel :map)
-                           (into {}
-                                 (map
-                                   (fn please-work [i]
-                                     (if-let [[_ k v] (re-matches map-sep-pat i)]
-                                       [(keyword k) (if (nil? t) v (t v))]
-                                       (throw (ex-info "no key value pairs detected"
-                                                       {:item i}))))
-                                   (string/split v list-sep-pat)))
-                           (= kabel :list)
-                           (map (fn [x] (if (nil? t) x (t x)))
-                                (string/split v list-sep-pat))
-                           :else
-                           (throw
-                             (ex-info
-                               "nothing makes sense in this world"
-                               {:function ::parse-env-vars
-                                :option kopt
-                                :label kabel
-                                :var k
-                                :val v})))))
-                m))
-            (hash-map)
-            e))]
+                                   (if-let [[_ label clean-opt]
+                                            (re-matches
+                                              var-pattern
+                                              k)]
+                                     (let [kopt (keyword (string/lower-case (string/replace clean-opt #"_" "-")))
+                                           kabel (keyword (string/lower-case label))
+                                           t (kopt transforms)]
+                                       (assoc m kopt
+                                              (cond
+                                                (= kabel :flag)
+                                                (let [ins (string/lower-case v)]
+                                                  (cond
+                                                    (or (= ins "1")
+                                                        (= ins "yes")
+                                                        (= ins "true"))
+                                                    true
+                                                    (or (= ins "0")
+                                                        (= ins "no")
+                                                        (= ins "false"))
+                                                    false
+                                                    :else
+                                                    (throw
+                                                      (ex-info
+                                                        "environment variable value not recognized as a boolean value"
+                                                        {:function :parse-env-vars
+                                                         :option kopt
+                                                         :label kabel
+                                                         :var k
+                                                         :val v}))))
+                                                (= kabel :item)
+                                                (if (nil? t) v (t v))
+                                                (= kabel :json)
+                                                (json/parse-string v true)
+                                                (= kabel :map)
+                                                (into {}
+                                                      (map
+                                                        (fn please-work [i]
+                                                          (if-let [[_ k v] (re-matches map-sep-pat i)]
+                                                            [(keyword k) (if (nil? t) v (t v))]
+                                                            (throw (ex-info "no key value pairs detected"
+                                                                            {:item i}))))
+                                                        (string/split v list-sep-pat)))
+                                                (= kabel :list)
+                                                (map (fn [x] (if (nil? t) x (t x)))
+                                                     (string/split v list-sep-pat))
+                                                :else
+                                                (throw
+                                                  (ex-info
+                                                    "nothing makes sense in this world"
+                                                    {:function ::parse-env-vars
+                                                     :option kopt
+                                                     :label kabel
+                                                     :var k
+                                                     :val v})))))
+                                     m))
+                                 (hash-map)
+                                 e))]
       (merge
         (process expanded-alias-env)
         (process expanded-explicit-env)))))
@@ -377,17 +377,17 @@
                                 (string/join
                                   " "
                                   (into [program-name]
-                                  c))
+                                        c))
                                 "`:"
                                 ))
                      (println (as-> f it
-                                                (resolve it)
-                                                (meta it)
-                                                (:doc it)
-                                                (string/trim-newline it)
-                                                (string/split it #"\n")
-                                                (map string/trim it)
-                                                (string/join \newline it)))
+                                    (resolve it)
+                                    (meta it)
+                                    (:doc it)
+                                    (string/trim-newline it)
+                                    (string/split it #"\n")
+                                    (map string/trim it)
+                                    (string/join \newline it)))
                      0)))
           {}
           (merge base-functions functions))
@@ -398,9 +398,9 @@
                                   ]))
         env-options
         (parse-env-vars (into params [
-                                    [:env-vars env]
-                                    [:aliases env-aliases]
-                                    ]))
+                                      [:env-vars env]
+                                      [:aliases env-aliases]
+                                      ]))
         expanded-env (expand-option-packs available-option-packs env-options)
         expanded-cli (expand-option-packs available-option-packs cli-options)
         config-files
@@ -429,10 +429,10 @@
         (reduce merge
                 (map (fn [file]
                        (expand-option-packs
-                                available-option-packs
-                                (json/parse-string
-                                  (default-slurp file) true))
-                              )
+                         available-option-packs
+                         (json/parse-string
+                           (default-slurp file) true))
+                       )
                      config-files))
         effective-options
         (as-> [defaults
@@ -453,7 +453,21 @@
                        (if-let [commands (:commands effective-options)]
                          commands
                          []))]
-        (func effective-options)
+      (try
+        (System/exit (func effective-options))
+        (catch clojure.lang.ExceptionInfo e
+          (exit-error
+            (if-let [code (:exit-code e)]
+              code
+              128)
+            (str (string/join
+                   \newline
+                   (str "Error: " e)
+                   (json/generate-string (ex-data e))))))
+        (catch Exception e
+          (exit-error
+            128
+            (str "Error: " e))))
       (exit-error
         1
         (string/join
