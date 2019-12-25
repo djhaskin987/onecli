@@ -7,11 +7,11 @@
     [clojure.string :as string]
     ))
 
-;;(defmacro dbg [body]
-;;  `(let [x# ~body]
-;;     (println "dbg:" '~body "=" x#)
-;;     (flush)
-;;     x#))
+(defmacro dbg [body]
+  `(let [x# ~body]
+     (println "dbg:" '~body "=" x#)
+     (flush)
+     x#))
 
 (defn exit-error [status msg]
   (.println ^java.io.PrintWriter *err* msg)
@@ -324,8 +324,7 @@
   variables, by CLI arguments, or by configuration files.
   "
   [options]
-  (println (json/generate-string options))
-  0)
+  options)
 
 (defn try-file [fparts]
   (let [f (io/file
@@ -334,6 +333,14 @@
               fparts))]
     (when (.exists f)
       [f])))
+
+(defn- stacktrace-string
+  "Gives back the string of the stacktrace of the given exception."
+  [ ^Exception e]
+  (let [s (java.io.StringWriter. )
+        p (java.io.PrintWriter. s)]
+    (.printStackTrace e p)
+    (str s)))
 
 (defn go!
   [
@@ -479,15 +486,18 @@
             (json/generate-string
               (as-> (ex-data e) it
                (assoc it :error (str e))
-               (assoc it :given-options effective-options)))))
+               (assoc it :stacktrace
+                      (stacktrace-string e)
+               (assoc it :given-options effective-options))))))
         (catch Exception e
           (exit-error
             128
           (json/generate-string
             {:error (str e)
              :problem :unknown-problem
+             :stacktrace (stacktrace-string e)
              :given-options effective-options
-             }))))
+             })))))
       (exit-error
         1
         (json/generate-string
@@ -495,7 +505,7 @@
            :error "Unknown command"
            :problem :unknown-command
            :given-options effective-options
-           })))))
+           }))))
 
 (defn default-spit [loc stuff]
   (clojure.core/spit loc (pr-str stuff) :encoding "UTF-8"))
