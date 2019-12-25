@@ -66,10 +66,7 @@
                  #(java.lang.Long/parseLong %)
                  :float
                  #(java.lang.Double/parseDouble %)
-                 :json
-                 json/parse-string
-                 :file
-                 default-slurp})
+                 })
 
 (defn parse-args
   [
@@ -119,7 +116,7 @@
 
           (if-let [[_ action clean-opt]
                    (re-matches
-                     #"--(disable|enable|reset|assoc|add|set|json)-(.+)" arg)]
+                     #"--(disable|enable|reset|assoc|add|set|json|file)-(.+)" arg)]
             (let [kopt (keyword (string/lower-case clean-opt))
                   kact (keyword action)
                   t (kopt transforms)]
@@ -137,7 +134,10 @@
                   (= kact :assoc))
                 (if (empty? rargs)
                   (throw (ex-info "not enough arguments supplied"
-                                  {:option kopt
+                                  {
+                                   :problem :onecli/not-enough-args
+                                   :option kopt
+                                   :exit-code 1
                                    :action kact
                                    :argument arg}))
                   (let [
@@ -153,15 +153,22 @@
                                       v
                                       (t v)))
                           (ex-info "argument not recognized as a key/value pair"
-                                   {:option kopt
+                                   {:exit-code 1
+                                    :problem :onecli/bad-kv-pair
+                                    :option kopt
                                     :action kact
                                     :argument arg}))
                         (let [groomed-val
-                              (if (= kact :json)
+                              (cond
+                                (= kact :json)
                                 (json/parse-string i true)
-                                (if (nil? t)
-                                  i
-                                  (t i)))]
+                                (= kact :file)
+                                (json/parse-string (default-slurp i) true)
+                                (not (nil? t))
+                                (t i)
+                                :else
+                                i)
+                                ]
                           (if (= kact :add)
                             (update-in m [kopt] #(if
                                                    (empty? %)
@@ -343,6 +350,8 @@
            map-sep
            program-name
            transforms
+           setup
+           teardown
            ]
     :as params
     :or {
@@ -359,6 +368,8 @@
          defaults
          {}
          functions {}
+         setup identity
+         teardown identity
          }
     }]
   (let [base-functions
@@ -446,45 +457,42 @@
                                     x))) it)
               (reduce merge (hash-map) it))
         ]
-    ;; Subproc package system forks processess,
-    ;; which causes the VM to hang unless this is called
-    ;; https://dev.clojure.org/jira/browse/CLJ-959
     (if-let [func (get effective-functions
                        (if-let [commands (:commands effective-options)]
                          commands
                          []))]
       (try
-        (System/exit (func effective-options))
+        (let [ret (teardown (func (setup effective-options)))]
+          (println (json/generate-string (dissoc ret :onecli)))
+          ;; Subproc package system forks processess,
+          ;; which causes the VM to hang unless this is called
+          ;; https://dev.clojure.org/jira/browse/CLJ-959
+          (System/exit 
+            (if-let [return-code (:exit-code (:onecli ret))]
+              return-code
+              0)))
         (catch clojure.lang.ExceptionInfo e
           (exit-error
-            (if-let [code (:exit-code e)]
+            (if-let [code (:exit-code (:onecli e))]
               code
               128)
-            (str (string/join
-                   \newline
-                   (str "Error: " e)
-                   (json/generate-string (ex-data e))))))
+            (json/generate-string
+              (assoc (ex-data e) :error (str e)))))
         (catch Exception e
           (exit-error
             128
-            (str "Error: " e))))
+          (json/generate-string
+            {:error (str e)
+             :problem 
+             }))))
       (exit-error
         1
-        (string/join
-          \newline
-          (into
-            ["Unknown command."
-             "Command given:"
-             (str "  - `"
-                  (string/join " " (:commands effective-options))
-                  "`")
-             "Available commands:"]
-            (map (fn [commands]
-                   (str
-                     "  - `"
-                     (string/join " " commands)
-                     "`"))
-                 (keys effective-functions))))))))
+        (json/generate-string
+          {
+           :error "Unknown command"
+           :problem :unknown-command
+           :given-options effective-options
+           })))))
 
 (defn default-spit [loc stuff]
   (clojure.core/spit loc (pr-str stuff) :encoding "UTF-8"))
