@@ -462,12 +462,12 @@
                          commands
                          []))]
       (try
-        (let [ret (teardown (func (setup effective-options)))]
+        (let [ret (func effective-options)]
           (println (json/generate-string (dissoc ret :onecli)))
           ;; Subproc package system forks processess,
           ;; which causes the VM to hang unless this is called
           ;; https://dev.clojure.org/jira/browse/CLJ-959
-          (System/exit 
+          (System/exit
             (if-let [return-code (:exit-code (:onecli ret))]
               return-code
               0)))
@@ -477,13 +477,16 @@
               code
               128)
             (json/generate-string
-              (assoc (ex-data e) :error (str e)))))
+              (as-> (ex-data e) it
+               (assoc it :error (str e))
+               (assoc it :given-options effective-options)))))
         (catch Exception e
           (exit-error
             128
           (json/generate-string
             {:error (str e)
-             :problem 
+             :problem :unknown-problem
+             :given-options effective-options
              }))))
       (exit-error
         1
