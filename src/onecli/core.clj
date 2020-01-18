@@ -480,7 +480,7 @@
               0)))
         (catch clojure.lang.ExceptionInfo e
           (exit-error
-            (if-let [code (:exit-code (:onecli e))]
+            (if-let [code (:exit-code (:onecli (ex-data e)))]
               code
               128)
             (json/generate-string
