@@ -20,6 +20,7 @@ Download `OneCLI on Clojars`_!
    Quickstart <quickstart>
    Tutorial <tutorial>
    Architecture <architecture>
+   RFC <rfc>
    Changelog <changelog>
    Command Reference <command-reference>
    Code of Conduct <code-of-conduct>
