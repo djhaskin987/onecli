@@ -1,6 +1,18 @@
 ﻿Why OneCLI?
 ===========
 
+I was thinking really hard how to make the CLI more approachable and easy
+to target. I wanted to find a simple way to map commands and options to
+function calls, and I never wanted to write another argument parser
+or configuration file parser again.
+
+I also wanted to write a command that adhered as much as possible to the unix
+philosophy of "do one thing well", a command that has maximum pipe usefulness.
+It made sense to use JSON everywhere to meet this goal.
+
+With these two ideas in my head, I came up with CPC, or Command Procedure
+Call, a standard for how a CLI program interacts with the user and behaves
+in a clean, standard way.
 
 OneCLI is Clojure library that makes CLI very nice, easy, and clojure-y.
 
@@ -11,9 +23,3 @@ of the box.
 
 OneCLI allows the programmer to easily make some very nice command line
 interface tools.
-
-It gathers configuration from defaults provided by the caller, by the
-config files (including https/remote ones), from
-environment, and from the CLI. then it merges these configuration items
-in an intuitive and easy-to-reason-about way. The result is a low-friction,
-clear and straightforward way to write commands.

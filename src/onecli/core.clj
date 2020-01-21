@@ -5,7 +5,8 @@
     [clojure.java.io :as io]
     [clojure.pprint :as pprint]
     [clojure.string :as string]
-    ))
+    )
+  )
 
 (defmacro dbg [body]
   `(let [x# ~body]
@@ -61,12 +62,15 @@
         (client/get resource)))
     (base-slurp resource)))
 
-(def transforms {
-                 :int
-                 #(java.lang.Long/parseLong %)
-                 :float
-                 #(java.lang.Double/parseDouble %)
-                 })
+(def
+  transforms
+  {
+   :int
+   #(java.lang.Long/parseLong %)
+   :float
+   #(java.lang.Double/parseDouble %)
+   }
+  )
 
 (defn parse-args
   [

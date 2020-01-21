@@ -178,11 +178,54 @@ The order in which arguments which specify options appear matters. Arguments
 occurring later in the arguments MUST override any value set for the same
 option by an earlier argument.
 
-As previously specified, any option given by command line MUST be overridden
-given by configuraton file or environment
-variable 
+As previously specified, any option given by command line MUST override any
+value given for that option given by environment variable or configuration
+file.
 
 An argument of the form ``--enable-<option-name>`` MUST have the effect
 of setting the option to the boolean value true, unless the option is not meant
-to be of a boolean value type, in which case the b
+to be of a boolean value type, in which case the behavior of the program is
+undefined.
 
+An argument of the form ``--disable-<option-name>`` MUST have the effect
+of setting the option to the boolean value false, unless the option is not
+meant to be of a boolean value type, in which case the behavior of the program
+is undefined.
+
+An argument of the form ``--reset-<option-name>`` MUST have the effect
+of "resetting" the option, such that the behavior of the function was never
+set at all, not even given a default value by the program. In programs with a
+concept of ``null`` or ``nil``, this argument sets the option to the null
+value.
+
+A series of arguments of the form ``--set-<option-name> <value>`` MUST have the
+effect of setting the value of ``<option-name>`` to ``<value>``. Any transform
+functions specific to that option MAY be used by the program, resulting in the
+string ``<value>`` becoming deserialized and the option set to the deserialized
+value.
+
+A series of arguments of the form ``--json-<option-name> <json-string>`` MUST
+have the effect of treating the argument ``<json-string>`` as a string of
+unicode characters, representing a valid JSON value, list or object. The JSON
+is deserialized (or at least logically so), possibly in an option-specific
+manner, and the option's value within the option data structure is set to this
+result.
+
+A series of arguments of the form ``--file-<option-name> <resource-loc>`` MUST
+have the effect of opening some resource, reading UTF-8 encoded unicode characters
+from that resource, deserializing them from JSON, and setting the option to the
+resulting value of that JSON. The resource MUST be allowed to be a file, but
+the program MAY also support single-string URLs, such as ``http``, ``ftp``, or
+``ssh`` URLs.
+
+All other arguments that are not of the forms above, after the aliases have
+been applied, are assumed to be commands.
+
+The CPC compliant program will then call the procedure that is associated
+with the list of commands found on the command line. The "list of commands" here
+means a list of commands with the commands found first in the arguments list
+at the front of the list, moving in this order until the back of the list
+which should contain the commands found last in the arguments list.
+A unique procedure for each command list should be called with the option data
+structure. If a list of commands was specified about which the program has no
+information, an error SHOULD be returned.
