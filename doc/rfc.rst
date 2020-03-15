@@ -8,22 +8,24 @@ Command Procedure Call (CPC) is a standard for command line utility
 application behavior. If a command line utility is "CPC compliant",
 it means that it complies with this standard.
 
-CPC compliant commands accept *options* from a number of different sources.
-These commands are referred to herein as "programs".  These options are then
-aggregated into one single data structure, referred to as the "option data
-structure". The user also specifies a list of commands, each of which maps to a
-single procedure. This "procedure" is a method or funtion of some kind. The
-program decides which procedure to call based on the given commands and calls
-the procedure, giving it the option data structure as an argument. The schema
-of this option datastructure MUST be the same for all commands, though all
-options that are in the structure's schema need not be used by allprocedures.
-The procedure then returns to the program a data structure. This is the "return
-data structure". This return data structure MUST be serializable to valid JSON.
-Then the program serializes the structure to valid JSON and prints it to
-standard output. The program MAY print arbitrary data to standard error during
-execution, but it MUST only print the JSON return to standard output. Then the
-program exits. The program MUST print a valid JSON document to standard output;
-it MUST NOT remain silent.
+CPC compliant programs accept *options* from a number of different sources.
+These options are then aggregated into one single data structure, referred to
+as the "option data structure". The user also specifies a list of commands,
+each of which maps to a single procedure. This "procedure" can be thought of as
+a method or funtion of some kind. The program decides which procedure to call
+based on the given commands and calls the procedure, giving it the option data
+structure as an argument. The schema of this option datastructure MUST be the
+same for all procedures (all possible commands), though all options that are in
+the structure's schema need not be used by all procedures, nor need all the
+options in the structure have meaningful data (they could be set to "null" or
+some other value denoting an absence of any value). The procedure then returns
+to the program a data structure. This is the "return data structure".  This
+return data structure MUST be serializable to valid JSON.  Then the program
+serializes the structure to valid JSON and prints it to standard output. The
+program MAY print arbitrary data to standard error during execution, but it
+MUST print the JSON return data structure to standard output and ONLY that
+structure. Then the program exits. The program MUST print a valid JSON document
+to standard output every time it is called; it MUST NOT remain silent.
 
 Program Return and Exit Codes
 -----------------------------
@@ -37,39 +39,41 @@ successfully. (Looking at YOU, robocopy.)
 The Specification of Options
 ----------------------------
 
-Each option found in the option data structure is logically a key-value pair.
-The key is a string of unicode characters, and is the same as the name of the
-option. The name of the option MUST be lower cased and MUST conform to this
+Each option found in the option data structure is logically a key-value pair,
+with the key corresponding the the *option name* and the value
+corresponding to the *option value*. The option name is a string of unicode
+characters. The name of the option MUST be lower cased and MUST conform to this
 regular expression::
 
     [a-z][a-z0-9-_]+
 
-Note that the option SHOULD be lower-cased.
+Note that the option name SHOULD be lower-cased.
 
-The value of the option within an option data structure is of any type, though
-it SHOULD be the same concrete type every time it appears; the option value
-type for any given option key SHOULD NOT be polymorphic.
+The option value within an option data structure is of any type, though
+the option value for any particular option name SHOULD always have the same  
+concrete type. The option value type for any given option key SHOULD NOT be
+polymorphic.
 
-Each option is found by consulting specific "option sources". Each option
-source is consulted in turn. The actual value of the option that is in the
-data structure which is ultimately given to the procedure is taken from
-the last option source to contain that option (last wins).
+Each option is found by consulting specific *option sources*. Each option
+source is consulted in turn. The actual value assigned to each option in the
+option data structure which is ultimately given to the procedure is taken from
+the last option source to contain that option ("last wins").
 
 The option sources are listed below in the order that they are consulted:
 
-  1. Configuration files
+  1. Configuration Files
   2. Environment Variables
   3. The Command Line
 
 The last option source in the above list is also where the commands
 that the program uses to determine what procedure to call are found.
-It may then be thought of as the sole "command source".
+It may then be thought of as the sole *command source*.
 
 A Note on Program Names
 -----------------------
 
 The file name of the program MUST be named the same as the name of the program
-itself. This "program name" will become important throughout this standard and
+itself. This *program name* will become important throughout this standard and
 should be chosen carefully.
 
 The Configuration Files
@@ -84,13 +88,14 @@ The configuration files that the program will look in are:
   3. ``$PWD/<program-name>.json``
   4. The files listed in the ``$<PROGRAM-NAME>_CONFIG_FILES`` environment
      variable, formatted in a comma separated list, if such an environment
-     variable exists, each in turn
+     variable exists, examined in the order in which they appear
 
 Each file is looked at in turn. The files are unicode text files, and are
-*defined* to be encoded in UTF-8. The files are valid JSON files that are MUST
-be deserializeable into valid option structures, even if not all the options
-are specified in the files. The option structures are then logically merged one
-on top of the other, starting with the first listed configuration file and
+*defined* to be encoded in UTF-8 unicode text encoding. The files are valid
+JSON files that are MUST be deserializeable into valid option structures, even
+if not all the options are specified in the files. The option structures are
+then logically merged one on top of the other, starting with the first listed
+configuration file and
 merging the second and third on top of it, with the last configuration file
 "winning".
 

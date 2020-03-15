@@ -491,8 +491,8 @@
               (as-> (ex-data e) it
                (assoc it :error (str e))
                (assoc it :stacktrace
-                      (stacktrace-string e)
-               (assoc it :given-options effective-options))))))
+                      (stacktrace-string e))
+               (assoc it :given-options effective-options)))))
         (catch Exception e
           (exit-error
             128
