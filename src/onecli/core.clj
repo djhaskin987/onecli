@@ -15,7 +15,9 @@
      x#))
 
 (defn exit-error [status msg]
-  (.println ^java.io.PrintWriter *err* msg)
+  ;; i've decided to put resulting errors to stdout,
+  ;; leaving the stderr clean for the caller
+  (println msg)
   (System/exit status))
 
 (defn exit-out [status msg]
