@@ -348,6 +348,80 @@
     (.printStackTrace e p)
     (str s)))
 
+(defn help-meta-var [arg]
+  (if-let [[_ action clean-opt]
+                        (re-matches
+                          #"--(assoc|add|set|json|file)-(.+)"
+                          arg)]
+                 (let [kopt (keyword (string/lower-case clean-opt))
+                       kact (keyword action)]
+                   (cond
+                     (= kact :assoc)
+                     "<k>=<v>"
+                     (or
+                       (= kact :set)
+                       (= kact :add))
+                     "<value>"
+                     (= kact :json)
+                     "<inline-json-blob>"
+                     (= kact :file)
+                     "<json-file>"))))
+
+(defn help-screen [program-name
+                   subcommands-list
+                   aliases]
+  (string/join
+    \newline
+    (reduce
+      into
+      [
+       [
+        (str
+          "Welcome to `" program-name "` !")
+        ""
+        "A subcommand MUST be given."
+        ""
+        "Available subcommands:"
+        ""
+        ]
+       (map (fn [cmds] (str "  - `" (string/join \space cmds) "`"))
+            subcommands-list)
+       [
+        ""
+        "All options can be used by all subcommands,"
+        "Though any given subcommand may not use all the options."
+        "Options can be given in any order, before, interspersed with or after"
+        "the subcommands."
+        ""
+        "Options:"
+        ""
+        ]
+       (map (fn [[small normal]]
+              (if-let [metavar (help-meta-var normal)]
+                (str "  - `" small " " metavar "`, `" normal " " metavar "`")
+                (str "  - `" small "`, `" normal "`")))
+            aliases)
+       [
+        ""
+        "This command uses OneCLI. All options can be set via environment"
+        "variable, config file, or command line. See the OneCLI docs for"
+        "more information:"
+        ""
+        "https://onecli.readthedocs.io"
+        ""
+        "See the docs of this command for more information:"
+        ""
+        "https://packrat.readthedocs.io"
+        ""
+        "Exit codes:"
+        "0     Yee-Haw"
+        "1     It's Not Me, It's You"
+        "2     It's Not You, It's Me"
+        "3     It's Something Else, Don't Shoot The Messenger"
+        "128   I have not idea what happened"
+        ]
+       ])))
+
 (defn go!
   [
    {
