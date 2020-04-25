@@ -367,60 +367,75 @@
                      (= kact :file)
                      "<json-file>"))))
 
-(defn help-screen [program-name
-                   subcommands-list
-                   aliases]
-  (string/join
-    \newline
-    (reduce
-      into
-      [
-       [
-        (str
-          "Welcome to `" program-name "` !")
-        ""
-        "A subcommand MUST be given."
-        ""
-        "Available subcommands:"
-        ""
-        ]
-       (map (fn [cmds] (str "  - `" (string/join \space cmds) "`"))
-            subcommands-list)
-       [
-        ""
-        "All options can be used by all subcommands,"
-        "Though any given subcommand may not use all the options."
-        "Options can be given in any order, before, interspersed with or after"
-        "the subcommands."
-        ""
-        "Options:"
-        ""
-        ]
-       (map (fn [[small normal]]
-              (if-let [metavar (help-meta-var normal)]
-                (str "  - `" small " " metavar "`, `" normal " " metavar "`")
-                (str "  - `" small "`, `" normal "`")))
-            aliases)
-       [
-        ""
-        "This command uses OneCLI. All options can be set via environment"
-        "variable, config file, or command line. See the OneCLI docs for"
-        "more information:"
-        ""
-        "https://onecli.readthedocs.io"
-        ""
-        "See the docs of this command for more information:"
-        ""
-        "https://packrat.readthedocs.io"
-        ""
-        "Exit codes:"
-        "0     Yee-Haw"
-        "1     It's Not Me, It's You"
-        "2     It's Not You, It's Me"
-        "3     It's Something Else, Don't Shoot The Messenger"
-        "128   I have not idea what happened"
-        ]
-       ])))
+(defn print-help-screen
+  [program-name
+   subcommands-list
+   aliases
+   defaults
+   options]
+  (println
+    (string/join
+      \newline
+      (reduce
+        into
+        [
+         [
+          (str "Welcome to `" program-name "` !")
+          ""
+          "A subcommand MUST be given."
+          ""
+          "Available subcommands:"
+          ""
+          ]
+         (map (fn [cmds] (str "  - `" (string/join \space cmds) "`"))
+              subcommands-list)
+         [
+          ""
+          "All options can be used by all subcommands,"
+          "Though any given subcommand may not use all the options."
+          "Options can be given in any order, before, interspersed with or after"
+          "the subcommands."
+          ""
+          "Options:"
+          ""
+          ]
+         (map (fn [[small normal]]
+                (if-let [metavar (help-meta-var normal)]
+                  (str "  - `" small " " metavar "`, `" normal " " metavar "`")
+                  (str "  - `" small "`, `" normal "`")))
+              aliases)
+         (if (empty? defaults)
+           []
+           (into
+             [
+              ""
+              "Default settings for some of the options:"
+              ""
+              ]
+             (map (fn [[opt v]]
+                    (str "  - `" (name opt) "` = `" v "`"))
+                  defaults)))
+         [
+          ""
+          "This command uses OneCLI. All options can be set via environment"
+          "variable, config file, or command line. See the OneCLI docs for"
+          "more information:"
+          ""
+          "https://onecli.readthedocs.io"
+          ""
+          "See the docs of this command for more information:"
+          ""
+          "https://packrat.readthedocs.io"
+          ""
+          "Exit codes:"
+          "0     Yee-Haw"
+          "1     It's Not Me, It's You"
+          "2     It's Not You, It's Me"
+          "3     It's Something Else, Don't Shoot The Messenger"
+          "128   I Have No Idea What Happened"
+          ]
+         ])))
+  {})
 
 (defn go!
   [
@@ -459,12 +474,13 @@
          teardown identity
          }
     }]
-  (let [base-functions
+  (let [
+        base-functions
         {
          ["options" "show"] 'onecli.core/display-config!
          ["options"] 'onecli.core/display-config!
          }
-        effective-functions
+        given-functions
         (reduce
           (fn make-help-screens [m [c f]]
             (assoc (assoc m c (resolve f))
@@ -486,9 +502,26 @@
                                     (string/split it #"\n")
                                     (map string/trim it)
                                     (string/join \newline it)))
-                     0)))
+                     {})))
           {}
           (merge base-functions functions))
+        help-screen-func
+        (partial print-help-screen
+                 program-name
+                 (into
+                   (keys given-functions)
+                   [
+                    ["help"]])
+                 cli-aliases
+                 defaults)
+        effective-functions
+        (as-> given-functions fs
+              (if (contains? fs [])
+                fs
+                (assoc fs [] help-screen-func))
+              (if (contains? fs ["help"])
+                fs
+                (assoc fs ["help"] help-screen-func)))
         cli-options
         (parse-args (into params [
                                   [:args args]
