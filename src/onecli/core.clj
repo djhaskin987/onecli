@@ -375,8 +375,7 @@
    defaults
    options]
   (println
-    (string/join
-      \newline
+    (string/join \newline
       (reduce
         into
         [
@@ -388,9 +387,10 @@
           "Available subcommands:"
           ""
           ]
-         (sort
-           (map (fn [cmds] (str "  - `" (string/join \space cmds) "`"))
-              subcommands-list))
+         (map (fn [cmds] (str "  - `" (string/join \space cmds) "`"))
+              (sort-by
+                (fn [lst] (string/join \space lst))
+                subcommands-list))
          [
           ""
           "All options can be used by all subcommands,"
@@ -401,12 +401,11 @@
           "Options:"
           ""
           ]
-         (sort
-           (map (fn [[small normal]]
-                  (if-let [metavar (help-meta-var normal)]
-                    (str "  - `" small " " metavar "`, `" normal " " metavar "`")
-                    (str "  - `" small "`, `" normal "`")))
-                aliases))
+         (map (fn [[small normal]]
+                (if-let [metavar (help-meta-var normal)]
+                  (str "  - `" small " " metavar "`, `" normal " " metavar "`")
+                  (str "  - `" small "`, `" normal "`")))
+              aliases)
          (if (empty? defaults)
            []
            (into
@@ -415,10 +414,9 @@
               "Default settings for some of the options:"
               ""
               ]
-             (sort
-               (map (fn [[opt v]]
+             (map (fn [[opt v]]
                     (str "  - `" (name opt) "` = `" v "`"))
-                  defaults))))
+                  defaults)))
          [
           ""
           "This command uses OneCLI. All options can be set via environment"
@@ -439,7 +437,7 @@
           "128   I Have No Idea What Happened"
           ]
          ])))
-  {})
+  {:suppress-return-output true})
 
 (defn go!
   [
@@ -490,23 +488,25 @@
             (assoc (assoc m c (resolve f))
                    (conj c "help")
                    (fn [options]
-                     (println (str
-                                "Help page for `"
-                                (string/join
-                                  " "
-                                  (into [program-name]
-                                        c))
-                                "`:"
-                                ))
-                     (println (as-> f it
-                                    (resolve it)
-                                    (meta it)
-                                    (:doc it)
-                                    (string/trim-newline it)
-                                    (string/split it #"\n")
-                                    (map string/trim it)
-                                    (string/join \newline it)))
-                     {})))
+                     (println
+                       (str
+                         "Help page for `"
+                         (string/join
+                           " "
+                           (into [program-name]
+                                 c))
+                         "`:"
+                         ))
+                     (println
+                       (as-> f it
+                             (resolve it)
+                             (meta it)
+                             (:doc it)
+                             (string/trim-newline it)
+                             (string/split it #"\n")
+                             (map string/trim it)
+                             (string/join \newline it)))
+                     {:suppress-return-output true})))
           {}
           (merge base-functions functions))
         help-screen-func
@@ -587,7 +587,9 @@
                          []))]
       (try
         (let [ret (func effective-options)]
-          (println (json/generate-string (dissoc ret :onecli)))
+          (when
+            (not (:suppress-return-output ret))
+            (println (json/generate-string (dissoc ret :onecli))))
           ;; Subproc package system forks processess,
           ;; which causes the VM to hang unless this is called
           ;; https://dev.clojure.org/jira/browse/CLJ-959
