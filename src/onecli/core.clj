@@ -15,8 +15,9 @@
      x#))
 
 (defn exit-error [status msg]
-  ;; i've decided to put resulting errors to stdout,
+  ;; I've decided to put resulting errors to stdout,
   ;; leaving the stderr clean for the caller
+  ;; EXCEPT when printing help screens
   (println msg)
   (System/exit status))
 
@@ -387,8 +388,9 @@
           "Available subcommands:"
           ""
           ]
-         (map (fn [cmds] (str "  - `" (string/join \space cmds) "`"))
-              subcommands-list)
+         (sort
+           (map (fn [cmds] (str "  - `" (string/join \space cmds) "`"))
+              subcommands-list))
          [
           ""
           "All options can be used by all subcommands,"
@@ -399,11 +401,12 @@
           "Options:"
           ""
           ]
-         (map (fn [[small normal]]
-                (if-let [metavar (help-meta-var normal)]
-                  (str "  - `" small " " metavar "`, `" normal " " metavar "`")
-                  (str "  - `" small "`, `" normal "`")))
-              aliases)
+         (sort
+           (map (fn [[small normal]]
+                  (if-let [metavar (help-meta-var normal)]
+                    (str "  - `" small " " metavar "`, `" normal " " metavar "`")
+                    (str "  - `" small "`, `" normal "`")))
+                aliases))
          (if (empty? defaults)
            []
            (into
@@ -412,9 +415,10 @@
               "Default settings for some of the options:"
               ""
               ]
-             (map (fn [[opt v]]
+             (sort
+               (map (fn [[opt v]]
                     (str "  - `" (name opt) "` = `" v "`"))
-                  defaults)))
+                  defaults))))
          [
           ""
           "This command uses OneCLI. All options can be set via environment"
