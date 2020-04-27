@@ -401,11 +401,15 @@
           "Options:"
           ""
           ]
+
          (map (fn [[small normal]]
                 (if-let [metavar (help-meta-var normal)]
                   (str "  - `" small " " metavar "`, `" normal " " metavar "`")
                   (str "  - `" small "`, `" normal "`")))
-              aliases)
+
+              (sort-by
+                (fn [[small normal]] (dbg (string/replace normal #"^--[a-z]+-" "")))
+              aliases))
          (if (empty? defaults)
            []
            (into
@@ -509,6 +513,14 @@
                      {:suppress-return-output true})))
           {}
           (merge base-functions functions))
+        effective-cli-aliases
+        (into
+          {
+           "--help" "help"
+           "-?" "help"
+           "-h" "help"
+           }
+          cli-aliases)
         help-screen-func
         (partial print-help-screen
                  program-name
@@ -516,7 +528,7 @@
                    (keys given-functions)
                    [
                     ["help"]])
-                 cli-aliases
+                 effective-cli-aliases
                  defaults)
         effective-functions
         (as-> given-functions fs
@@ -529,7 +541,7 @@
         cli-options
         (parse-args (into params [
                                   [:args args]
-                                  [:aliases cli-aliases]
+                                  [:aliases effective-cli-aliases]
                                   ]))
         env-options
         (parse-env-vars (into params [
