@@ -401,14 +401,16 @@
           "Options:"
           ""
           ]
-
          (map (fn [[small normal]]
                 (if-let [metavar (help-meta-var normal)]
-                  (str "  - `" small " " metavar "`, `" normal " " metavar "`")
-                  (str "  - `" small "`, `" normal "`")))
-
+                  (format "  - %-26s or %-46s"
+                          (str "`" small " " metavar "`")
+                          (str "`" normal " " metavar "`"))
+                  (format "  - %-26s or %-46s"
+                          (str "`" small "`")
+                          (str "`" normal "`"))))
               (sort-by
-                (fn [[small normal]] (dbg (string/replace normal #"^--[a-z]+-" "")))
+                (fn [[small normal]] (string/replace normal #"^--[a-z]+-" ""))
               aliases))
          (if (empty? defaults)
            []
@@ -428,10 +430,6 @@
           "more information:"
           ""
           "https://onecli.readthedocs.io"
-          ""
-          "See the docs of this command for more information:"
-          ""
-          "https://packrat.readthedocs.io"
           ""
           "Exit codes:"
           "0     Yee-Haw"
