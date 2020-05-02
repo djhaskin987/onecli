@@ -136,6 +136,7 @@
                 (recur (conj m [kopt nil]) rargs)
                 (or
                   (= kact :json)
+                  (= kact :file)
                   (= kact :set)
                   (= kact :add)
                   (= kact :assoc))
