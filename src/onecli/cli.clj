@@ -1,5 +1,6 @@
 (ns onecli.cli
   (:require
+      [clojure.java.io :as io]
       [onecli.core :as core])
   (:gen-class))
 
@@ -7,15 +8,17 @@
   "
   This is the `a` subcommand help.
   "
-  []
-  {:result "a is awesome"}
+  [options]
+  (if (.exists (:filename options))
+    {:result "a is awesome"}
+    {:result "a is NOT awesome"})
   )
 
 (defn ab
   "
   This is the `a b` subcommand help.
   "
-  []
+  [options]
   {:result "ab is awesome"}
   )
 
@@ -23,7 +26,7 @@
   "
   This is the `c` subcommand help.
   "
-  []
+  [options]
   {:result "c is awesome"}
   )
 
@@ -31,6 +34,12 @@
   (System/exit
     (core/go! {:program-name "onecli"
                :args args
+               :transforms
+               {
+                :filename io/as-file
+                }
+               :setup (fn [options] (println "setup"))
+               :teardown (fn [options] (shutdown-agents))
                :functions
                {
                 ["a"] 'onecli.cli/a
@@ -45,6 +54,7 @@
                 "-d" "--enable-delta"
                 "-D" "--disable-delta"
                 "-e" "--assoc-epsilon"
+                "-f" "--set-filename"
                 "-z" "--add-zeta"
                 "-E" "--bork-eta"
                 }

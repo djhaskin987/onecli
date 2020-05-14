@@ -37,6 +37,14 @@
                        :main onecli.cli
                        :aot :all
                        }
+             :deploy {
+                   :dependencies [
+                                  [org.clojure/clojure "1.10.1"]
+                                  [cheshire "5.9.0"]
+                                  [clj-http "3.10.0"]
+                                  ]
+                   }
+
              :dev {
                    :dependencies [
                                   [pjstadig/humane-test-output "0.9.0"]

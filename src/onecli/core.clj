@@ -166,16 +166,18 @@
                                     :option kopt
                                     :action kact
                                     :argument arg}))
-                        (let [groomed-val
+                        (let [washed-val
                               (cond
                                 (= kact :json)
                                 (json/parse-string i true)
                                 (= kact :file)
                                 (json/parse-string (default-slurp i) true)
-                                (not (nil? t))
-                                (t i)
                                 :else
                                 i)
+                              groomed-val
+                              (if (not (nil? t))
+                                (dbg (t washed-val))
+                                (dbg washed-val))
                                 ]
                           (if (= kact :add)
                             (update-in m [kopt] #(if
@@ -475,8 +477,8 @@
          defaults
          {}
          functions {}
-         setup identity
-         teardown identity
+         setup nil
+         teardown nil
          }
     }]
   (let [
@@ -597,10 +599,15 @@
                          commands
                          []))]
       (try
-        (let [ret (func effective-options)]
+
+        (let [ret
+              (if (not (nil? setup))
+                (func (setup effective-options))
+                (func effective-options))]
           (when
             (not (:suppress-return-output ret))
             (println (json/generate-string (dissoc ret :onecli))))
+          (when (not (nil? teardown)) (teardown effective-options))
           ;; Subproc package system forks processess,
           ;; which causes the VM to hang unless this is called
           ;; https://dev.clojure.org/jira/browse/CLJ-959
