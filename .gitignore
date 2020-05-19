@@ -1,4 +1,5 @@
 /target
+/out
 /test/resources/data/all/
 /classes
 /checkouts

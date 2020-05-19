@@ -38,7 +38,7 @@
                {
                 :filename io/as-file
                 }
-               :setup (fn [options] (println "setup"))
+               :setup (fn [options] (assoc options :println "setup"))
                :teardown (fn [options] (shutdown-agents))
                :functions
                {

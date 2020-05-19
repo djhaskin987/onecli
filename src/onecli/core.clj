@@ -1,6 +1,7 @@
 (ns onecli.core
   (:require
     [cheshire.core :as json]
+    [cheshire.generate :as generate]
     [clj-http.client :as client]
     [clojure.java.io :as io]
     [clojure.pprint :as pprint]
@@ -13,6 +14,12 @@
      (println "dbg:" '~body "=" x#)
      (flush)
      x#))
+
+(generate/add-encoder
+  java.lang.Object
+  (fn
+    [obj jsonGenerator]
+    (generate/write-string jsonGenerator (str obj))))
 
 (defn exit-error [status msg]
   ;; I've decided to put resulting errors to stdout,
@@ -176,8 +183,8 @@
                                 i)
                               groomed-val
                               (if (not (nil? t))
-                                (dbg (t washed-val))
-                                (dbg washed-val))
+                                (t washed-val)
+                                washed-val)
                                 ]
                           (if (= kact :add)
                             (update-in m [kopt] #(if
