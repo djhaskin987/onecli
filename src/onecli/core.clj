@@ -298,16 +298,19 @@
                                                 (= kabel :item)
                                                 (if (nil? t) v (t v))
                                                 (= kabel :json)
-                                                (json/parse-string v true)
+                                                (if (nil? t)
+                                                  (json/parse-string v true)
+                                                  (t (json/parse-string v true)))
                                                 (= kabel :map)
-                                                (into {}
-                                                      (map
-                                                        (fn please-work [i]
-                                                          (if-let [[_ k v] (re-matches map-sep-pat i)]
-                                                            [(keyword k) (if (nil? t) v (t v))]
-                                                            (throw (ex-info "no key value pairs detected"
-                                                                            {:item i}))))
-                                                        (string/split v list-sep-pat)))
+                                                (into
+                                                  {}
+                                                  (map
+                                                    (fn [i]
+                                                      (if-let [[_ k v] (re-matches map-sep-pat i)]
+                                                        [(keyword k) (if (nil? t) v (t v))]
+                                                        (throw (ex-info "no key value pairs detected"
+                                                                        {:item i}))))
+                                                    (string/split v list-sep-pat)))
                                                 (= kabel :list)
                                                 (map (fn [x] (if (nil? t) x (t x)))
                                                      (string/split v list-sep-pat))
