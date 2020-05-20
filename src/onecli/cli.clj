@@ -34,11 +34,10 @@
   (System/exit
     (core/go! {:program-name "onecli"
                :args args
-               :transforms
-               {
-                :filename io/as-file
-                }
-               :setup (fn [options] (assoc options :println "setup"))
+               :setup (fn [options]
+                        (as-> options it
+                          (assoc it :println "setup")
+                          (update it :filename io/as-file)))
                :teardown (fn [options] (shutdown-agents))
                :functions
                {

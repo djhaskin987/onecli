@@ -72,16 +72,6 @@
         (client/get resource)))
     (base-slurp resource)))
 
-(def
-  transforms
-  {
-   :int
-   #(java.lang.Long/parseLong %)
-   :float
-   #(java.lang.Double/parseDouble %)
-   }
-  )
-
 (defn parse-args
   [
    {
@@ -89,14 +79,11 @@
     [
      args
      aliases
-     transforms
      map-sep
      ]
     :or
     {
      aliases
-     {}
-     transforms
      {}
      map-sep
      "="
@@ -132,8 +119,7 @@
                    (re-matches
                      #"--(disable|enable|reset|assoc|add|set|json|file)-(.+)" arg)]
             (let [kopt (keyword (string/lower-case clean-opt))
-                  kact (keyword action)
-                  t (kopt transforms)]
+                  kact (keyword action)]
               (cond
                 (= kact :disable)
                 (recur (conj m [kopt false]) rargs)
@@ -164,16 +150,14 @@
                         (if-let [[_ k v] (re-matches map-sep-pat i)]
                           (assoc-in m
                                     [kopt k]
-                                    (if (nil? t)
-                                      v
-                                      (t v)))
+                                    v)
                           (ex-info "argument not recognized as a key/value pair"
                                    {:exit-code 1
                                     :problem :onecli/bad-kv-pair
                                     :option kopt
                                     :action kact
                                     :argument arg}))
-                        (let [washed-val
+                        (let [groomed-val
                               (cond
                                 (= kact :json)
                                 (json/parse-string i true)
@@ -181,10 +165,6 @@
                                 (json/parse-string (default-slurp i) true)
                                 :else
                                 i)
-                              groomed-val
-                              (if (not (nil? t))
-                                (t washed-val)
-                                washed-val)
                                 ]
                           (if (= kact :add)
                             (update-in m [kopt] #(if
@@ -210,13 +190,10 @@
      list-sep
      map-sep
      program-name
-     transforms
      ]
     :or
     {
      aliases
-     {}
-     transforms
      {}
      map-sep
      "="
@@ -227,7 +204,8 @@
   (let [
         clean-name
         (string/upper-case
-          (string/replace program-name #"\W" "_"))
+          (string/replace
+            program-name #"\W" "_"))
         var-pattern
         (re-pattern
           (str
@@ -271,8 +249,7 @@
                                               var-pattern
                                               k)]
                                      (let [kopt (keyword (string/lower-case (string/replace clean-opt #"_" "-")))
-                                           kabel (keyword (string/lower-case label))
-                                           t (kopt transforms)]
+                                           kabel (keyword (string/lower-case label))]
                                        (assoc m kopt
                                               (cond
                                                 (= kabel :flag)
@@ -296,24 +273,21 @@
                                                          :var k
                                                          :val v}))))
                                                 (= kabel :item)
-                                                (if (nil? t) v (t v))
+                                                v
                                                 (= kabel :json)
-                                                (if (nil? t)
-                                                  (json/parse-string v true)
-                                                  (t (json/parse-string v true)))
+                                                (json/parse-string v true)
                                                 (= kabel :map)
                                                 (into
                                                   {}
                                                   (map
                                                     (fn [i]
                                                       (if-let [[_ k v] (re-matches map-sep-pat i)]
-                                                        [(keyword k) (if (nil? t) v (t v))]
+                                                        [(keyword k) v]
                                                         (throw (ex-info "no key value pairs detected"
                                                                         {:item i}))))
                                                     (string/split v list-sep-pat)))
                                                 (= kabel :list)
-                                                (map (fn [x] (if (nil? t) x (t x)))
-                                                     (string/split v list-sep-pat))
+                                                (string/split v list-sep-pat)
                                                 :else
                                                 (throw
                                                   (ex-info
@@ -468,7 +442,6 @@
            list-sep
            map-sep
            program-name
-           transforms
            setup
            teardown
            ]
@@ -479,8 +452,6 @@
          cli-aliases
          {}
          env-aliases
-         {}
-         transforms
          {}
          available-option-packs
          {}
