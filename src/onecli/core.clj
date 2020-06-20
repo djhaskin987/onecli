@@ -574,15 +574,22 @@
                                     #(not (nil? (second %)))
                                     x))) it)
               (reduce merge (hash-map) it))
+        effective-commands
+        (if-let [commands (:commands effective-options)]
+                                 commands
+                                 [])
         ]
     (if-let [func (get effective-functions
-                       (if-let [commands (:commands effective-options)]
-                         commands
-                         []))]
+                       effective-commands)]
       (try
 
         (let [ret
-              (if (not (nil? setup))
+              (if (and
+                    (not (nil? setup))
+                    (or
+                      (empty? effective-commands)
+                      (not (= (nth effective-commands (dec (count effective-commands)))
+                              "help"))))
                 (func (setup effective-options))
                 (func effective-options))]
           (when
