@@ -12,9 +12,9 @@
                                     :sign-releases true}]]
 
   :dependencies [
-                 [org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojure "1.10.2-alpha1"]
                  [cheshire "5.9.0"]
-                 [clj-http "3.10.0"]
+                 [org.martinklepsch/clj-http-lite "0.4.3"]
                  ]
   :global-vars {
                 *warn-on-reflection* true
@@ -34,23 +34,30 @@
 
   :profiles {
              :uberjar {
+                   :dependencies [
+                                  [org.clojure/clojure "1.10.2-alpha1"]
+                                  [cheshire "5.9.0"]
+                                  [org.martinklepsch/clj-http-lite "0.4.3"]
+                                  [borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]
+                                  ]
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                        :main onecli.cli
                        :aot :all
                        }
              :deploy {
                    :dependencies [
-                                  [org.clojure/clojure "1.10.1"]
+                                  [org.clojure/clojure "1.10.2-alpha1"]
                                   [cheshire "5.9.0"]
-                                  [clj-http "3.10.0"]
+                                  [org.martinklepsch/clj-http-lite "0.4.3"]
                                   ]
                    }
 
              :dev {
                    :dependencies [
                                   [pjstadig/humane-test-output "0.9.0"]
-                                  [org.clojure/clojure "1.10.1"]
+                                  [org.clojure/clojure "1.10.2-alpha1"]
                                   [cheshire "5.9.0"]
-                                  [clj-http "3.10.0"]
+                                  [org.martinklepsch/clj-http-lite "0.4.3"]
                                   ]
                    :plugins [
                              [test2junit "1.3.3"]

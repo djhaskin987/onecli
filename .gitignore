@@ -13,6 +13,9 @@ pom.xml.asc
 .hgignore
 .hg/
 
+# native image builds
+/onecli-0.6.0-SNAPSHOT-standalone
+
 # Editor save files
 .*.sw[a-z]
 *~

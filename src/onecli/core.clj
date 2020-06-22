@@ -2,7 +2,7 @@
   (:require
     [cheshire.core :as json]
     [cheshire.generate :as generate]
-    [clj-http.client :as client]
+    [clj-http.lite.client :as client]
     [clojure.java.io :as io]
     [clojure.pprint :as pprint]
     [clojure.string :as string]
