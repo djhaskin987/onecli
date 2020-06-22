@@ -22,16 +22,6 @@
   :repl-options {
                  :init-ns onecli.core
                  }
-  :plugins [[io.taylorwood/lein-native-image "0.3.1"]]
-  :native-image {
-                 :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
-                 :opts ["-H:EnableURLProtocols=http,https"
-                        "--report-unsupported-elements-at-runtime" ;; ignore native-image build errors
-                        "--initialize-at-build-time"
-                        "--no-server" ;; TODO issue with subsequent builds failing on same server
-                        "--verbose"]
-                 :name "onecli"}
-
   :profiles {
              :uberjar {
                    :dependencies [
