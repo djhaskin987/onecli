@@ -16,6 +16,7 @@
                  [cheshire "5.9.0"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  ]
+
   :global-vars {
                 *warn-on-reflection* true
                 }
@@ -35,11 +36,11 @@
                        :aot :all
                        }
              :deploy {
-                   :dependencies [
-                                  [org.clojure/clojure "1.10.2-alpha1"]
-                                  [cheshire "5.9.0"]
-                                  [org.martinklepsch/clj-http-lite "0.4.3"]
-                                  ]
+                      :dependencies [
+                                     [org.clojure/clojure "1.10.2-alpha1"]
+                                     [cheshire "5.9.0"]
+                                     [org.martinklepsch/clj-http-lite "0.4.3"]
+                                     ]
                    }
 
              :dev {

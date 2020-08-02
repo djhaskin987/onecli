@@ -39,8 +39,8 @@
                 loc)]
     (clojure.core/slurp input :encoding "UTF-8")))
 
-(defn default-slurp [resource]
-  (if (re-matches #"https?://.*" (str resource))
+(defn handle-http [options]
+  (let [base-args (into {} (:extra-args options))]
     (:body
       (if-let [[whole-thing protocol auth-stuff rest-of-it]
                (re-matches #"(https?://)([^@]+)@(.+)" resource)]
@@ -50,27 +50,50 @@
             (str
               protocol
               rest-of-it)
-            {
-             :basic-auth [(java.net.URLDecoder/decode username)
-                          (java.net.URLDecoder/decode password)]})
+            (assoc base-args 
+                   :basic-auth
+                   [(java.net.URLDecoder/decode username)
+                    (java.net.URLDecoder/decode password)]))
           (if-let [[_ headerkey headerval]
                    (re-matches #"([^=]+)=([^=]+)" auth-stuff)]
             (client/get (str
                           protocol
                           rest-of-it)
-                        {
-                         :headers
-                         {
-                          (keyword (java.net.URLDecoder/decode headerkey))
-                          (java.net.URLDecoder/decode headerval)}})
+                        (assoc base-args
+                               :headers
+                               {
+                                (keyword (java.net.URLDecoder/decode headerkey))
+                                (java.net.URLDecoder/decode headerval)
+                                }
+                               ))
             (client/get (str
                           protocol
                           rest-of-it)
-                        {
-                         :oauth-token (java.net.URLDecoder/decode auth-stuff)
-                         })))
-        (client/get resource)))
+                        (assoc base-args
+                               :oauth-token
+                               (java.net.URLDecoder/decode auth-stuff)))))
+        (client/get resource base-args)))))
+
+(defn default-slurp [resource]
+  (if (re-matches #"https?://.*" (str resource))
+    (handle-http {:resource resource})
     (base-slurp resource)))
+
+(defn default-download [resource dest]
+  (if (re-matches #"https?://.*" (str resource))
+    (with-open [in (handle-http {
+                  :resource resource
+                  :extra-args {
+                               :as :stream
+                               }
+                  })
+                out (io/output-stream dest)]
+      (io/copy in out))
+    (throw (ex-info "Download currently only supports HTTP/HTTPS"
+                    {:function :default-download
+                     :resource resource
+                     :dest dest
+                     :package :onecli}))))
 
 (defn parse-args
   [
@@ -547,10 +570,17 @@
                           "."
                           program-name
                           ".json")]))
-           (try-file
-             ["." (str
-                    program-name
-                    ".json")])
+           (if-let [home (System/getProperty "user.home")]
+             (try-file [home
+                        (str
+                          "."
+                          program-name
+                          ".json")]))
+           (if-let [pwd (System/getProperty "user.dir")]
+             (try-file
+               [pwd (str
+                      program-name
+                      ".json")]))
            (:config-files expanded-env)
            (:config-files expanded-cli)
            ])
@@ -560,8 +590,7 @@
                        (expand-option-packs
                          available-option-packs
                          (json/parse-string
-                           (default-slurp file) true))
-                       )
+                           (default-slurp file) true)))
                      config-files))
         effective-options
         (as-> [defaults
