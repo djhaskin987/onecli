@@ -13,6 +13,10 @@ pom.xml.asc
 .hgignore
 .hg/
 
+# IDEs
+/.idea
+/.calva
+
 # native image builds
 /onecli-0.6.0-SNAPSHOT-standalone
 

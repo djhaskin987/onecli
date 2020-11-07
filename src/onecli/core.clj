@@ -7,6 +7,9 @@
     [clojure.pprint :as pprint]
     [clojure.string :as string]
     )
+  (:import
+    (java.nio.file Paths Path Files StandardOpenOption)
+    (java.net URL))
   )
 
 (defmacro dbg [body]
@@ -40,7 +43,8 @@
     (clojure.core/slurp input :encoding "UTF-8")))
 
 (defn handle-http [options]
-  (let [base-args (into {} (:extra-args options))]
+  (let [resource (:resource options)
+        base-args (into {} (:extra-args options))]
     (:body
       (if-let [[whole-thing protocol auth-stuff rest-of-it]
                (re-matches #"(https?://)([^@]+)@(.+)" resource)]
@@ -50,7 +54,7 @@
             (str
               protocol
               rest-of-it)
-            (assoc base-args 
+            (assoc base-args
                    :basic-auth
                    [(java.net.URLDecoder/decode username)
                     (java.net.URLDecoder/decode password)]))
@@ -79,21 +83,44 @@
     (handle-http {:resource resource})
     (base-slurp resource)))
 
+(defn url-to-path
+  [path]
+  ;; https://stackoverflow.com/q/18520972
+  (println "url-to-path")
+  (-> path
+      (URL.)
+      (.toURI)
+      (Paths/get)))
+
 (defn default-download [resource dest]
-  (if (re-matches #"https?://.*" (str resource))
-    (with-open [in (handle-http {
-                  :resource resource
-                  :extra-args {
-                               :as :stream
-                               }
-                  })
-                out (io/output-stream dest)]
-      (io/copy in out))
-    (throw (ex-info "Download currently only supports HTTP/HTTPS"
-                    {:function :default-download
-                     :resource resource
-                     :dest dest
-                     :package :onecli}))))
+  (if (= resource "-")
+    (with-open [out (io/output-stream dest)]
+      (io/copy *in* out))
+    (with-open
+      [in
+       (cond
+         (re-matches #"file://.*" (str resource))
+         (Files/newInputStream
+           (url-to-path (str resource))
+           (to-array [
+                      StandardOpenOption/READ
+                      ])
+           )
+         (re-matches #"https?://.*" (str resource))
+         (handle-http {
+                       :resource resource
+                       :extra-args {
+                                    :as :stream
+                                    }
+                       })
+         :else
+         (Files/newInputStream
+           (Paths/get "" (into-array [resource]))
+           (into-array [
+                        StandardOpenOption/READ
+                        ])))
+       out (io/output-stream dest)]
+      (io/copy in out))))
 
 (defn parse-args
   [
