@@ -78,7 +78,9 @@
                                (java.net.URLDecoder/decode auth-stuff)))))
         (client/get resource base-args)))))
 
-(defn default-slurp [resource]
+(defn
+  default-slurp
+  [resource]
   (if (re-matches #"https?://.*" (str resource))
     (handle-http {:resource resource})
     (base-slurp resource)))
@@ -92,28 +94,42 @@
       (.toURI)
       (Paths/get)))
 
-(defn default-download [resource dest]
-  (if (= resource "-")
+(defn locked-down-download [resource dest]
+  (with-open
+    [in
+     (client/get resource {
+                           :as :stream
+                           })
+     out (io/output-stream dest)]
+    (io/copy in out)))
+
+(defn download [resource dest]
+  (with-open
+    [in
+     (handle-http {
+                   :resource resource
+                   :extra-args {
+                                :as :stream
+                                }
+                   })
+     out (io/output-stream dest)]
+    (io/copy in out)))
+
+(defn grab [resource dest]
+  (cond
+    (= resource "-")
     (with-open [out (io/output-stream dest)]
       (io/copy *in* out))
+    (re-matches #"https?://.*" (str resource))
+    (download resource dest)
     (with-open
       [in
-       (cond
-         (re-matches #"file://.*" (str resource))
+       (if (re-matches #"file://.*" (str resource))
          (Files/newInputStream
            (url-to-path (str resource))
            (to-array [
                       StandardOpenOption/READ
-                      ])
-           )
-         (re-matches #"https?://.*" (str resource))
-         (handle-http {
-                       :resource resource
-                       :extra-args {
-                                    :as :stream
-                                    }
-                       })
-         :else
+                      ]))
          (Files/newInputStream
            (Paths/get "" (into-array [resource]))
            (into-array [

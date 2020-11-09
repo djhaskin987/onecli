@@ -1,6 +1,6 @@
 (defproject
   onecli
-  "0.6.0-SNAPSHOT"
+  "0.7.0-SNAPSHOT"
   :description "One CLI, for all people, for all time."
   :url "https://git.sr.ht/~djhaskin987/onecli"
   :license {:name "Eclipse Public License"
@@ -9,7 +9,7 @@
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
                                     :username :env/clojars_username
                                     :password :env/clojars_password
-                                    :sign-releases true}]]
+                                    :sign-releases false}]]
 
   :dependencies [
                  [org.clojure/clojure "1.10.2-alpha1"]
