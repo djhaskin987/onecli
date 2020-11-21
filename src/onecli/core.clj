@@ -6,14 +6,7 @@
     [clj-http.lite.client :as client]
     [clojure.java.io :as io]
     [clojure.pprint :as pprint]
-    [clojure.string :as string])
-  (:import
-    (java.net
-      URL)
-    (java.nio.file
-      Files
-      Paths
-      StandardOpenOption)))
+    [clojure.string :as string]))
 
 
 (defmacro dbg
