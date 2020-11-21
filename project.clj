@@ -11,53 +11,33 @@
                                     :password :env/clojars_password
                                     :sign-releases true}]]
 
-  :dependencies [
-                 [org.clojure/clojure "1.10.2-alpha1"]
+  :dependencies [[org.clojure/clojure "1.10.2-alpha1"]
                  [cheshire "5.9.0"]
-                 [org.martinklepsch/clj-http-lite "0.4.3"]
-                 ]
+                 [org.martinklepsch/clj-http-lite "0.4.3"]]
 
-  :global-vars {
-                *warn-on-reflection* true
-                }
+  :global-vars {*warn-on-reflection* true}
   ;;:repl-options {
   ;;               :init-ns onecli.core
   ;;               }
-  :profiles {
-             :uberjar {
-                   :dependencies [
-                                  [org.clojure/clojure "1.10.2-alpha1"]
-                                  [cheshire "5.9.0"]
-                                  [org.martinklepsch/clj-http-lite "0.4.3"]
-                                  [borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]
-                                  ]
+  :profiles {:uberjar {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]
+                                      [cheshire "5.9.0"]
+                                      [org.martinklepsch/clj-http-lite "0.4.3"]
+                                      [borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                        :main onecli.cli
-                       :aot :all
-                       }
-             :deploy {
-                      :dependencies [
-                                     [org.clojure/clojure "1.10.2-alpha1"]
+                       :aot :all}
+             :deploy {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]
                                      [cheshire "5.9.0"]
-                                     [org.martinklepsch/clj-http-lite "0.4.3"]
-                                     ]
-                   }
+                                     [org.martinklepsch/clj-http-lite "0.4.3"]]}
 
-             :dev {
-                   :dependencies [
-                                  [pjstadig/humane-test-output "0.9.0"]
+             :dev {:dependencies [[pjstadig/humane-test-output "0.9.0"]
                                   [org.clojure/clojure "1.10.2-alpha1"]
                                   [cheshire "5.9.0"]
-                                  [org.martinklepsch/clj-http-lite "0.4.3"]
-                                  ]
-                   :plugins [
-                             [test2junit "1.3.3"]
+                                  [org.martinklepsch/clj-http-lite "0.4.3"]]
+                   :plugins [[test2junit "1.3.3"]
                              [lein-licenses "0.2.2"]
-                             [lein-print "0.1.0"]
-                             ]
+                             [lein-print "0.1.0"]]
                    :test2junit-output-dir "target/test-results"
                    :injections [(require 'pjstadig.humane-test-output)
-                                (pjstadig.humane-test-output/activate!)]
-                   }
-             }
+                                (pjstadig.humane-test-output/activate!)]}}
   :target-path "target/%s/")
