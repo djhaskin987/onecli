@@ -1,4 +1,4 @@
-(ns onecli
+(ns onecli.core
   {:clj-kondo/config '{:linters {:missing-else-branch {:level :off}}}}
   (:require
     [cheshire.core :as json]
@@ -6,7 +6,13 @@
     [clj-http.lite.client :as client]
     [clojure.java.io :as io]
     [clojure.pprint :as pprint]
-    [clojure.string :as string]))
+    [clojure.string :as string])
+(:import
+  (java.net URL)
+    (java.nio.file
+      Files
+      Paths
+      StandardOpenOption)))
 
 
 (defmacro dbg

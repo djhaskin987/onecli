@@ -21,6 +21,9 @@ pom.xml.asc
 # native image builds
 /onecli-0.6.0-SNAPSHOT-standalone
 
+# deps.edn
+/.cpcache/
+
 # Editor save files
 .*.sw[a-z]
 *~
