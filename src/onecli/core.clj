@@ -35,13 +35,8 @@
   ;; leaving the stderr clean for the caller
   ;; EXCEPT when printing help screens
   (println msg)
-  (System/exit status))
+  status)
 
-
-(defn exit-out
-  [status msg]
-  (println msg)
-  (System/exit status))
 
 ;; UTF-8 by default :)
 (defn base-slurp
@@ -501,6 +496,7 @@
          defaults
          {}
          functions {}
+         exit-fn System/exit
          setup nil
          teardown nil}}]
   (let [base-functions
@@ -620,7 +616,6 @@
     (if-let [func (get effective-functions
                        effective-commands)]
       (try
-
         (let [ret
               (if (and
                     (not (nil? setup))
@@ -634,13 +629,9 @@
             (not (:suppress-return-output ret))
             (println (json/generate-string (dissoc ret :onecli))))
           (when (not (nil? teardown)) (teardown effective-options))
-          ;; Subproc package system forks processess,
-          ;; which causes the VM to hang unless this is called
-          ;; https://dev.clojure.org/jira/browse/CLJ-959
-          (System/exit
             (if-let [return-code (:exit-code (:onecli ret))]
               return-code
-              0)))
+              0))
         (catch clojure.lang.ExceptionInfo e
           (exit-error
             (if-let [code (:exit-code (:onecli (ex-data e)))]

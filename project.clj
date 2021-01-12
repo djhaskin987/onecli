@@ -7,8 +7,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
-                                    :username :env/clojars_username
-                                    :password :env/clojars_password
+                                    :username :env/CLOJARS_USERNAME
+                                    :password :env/CLOJARS_PASSWORD
                                     :sign-releases true}]]
 
   :dependencies [[org.clojure/clojure "1.10.2-alpha1"]
@@ -29,7 +29,6 @@
              :deploy {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]
                                      [cheshire "5.9.0"]
                                      [org.martinklepsch/clj-http-lite "0.4.3"]]}
-
              :dev {:dependencies [[pjstadig/humane-test-output "0.9.0"]
                                   [org.clojure/clojure "1.10.2-alpha1"]
                                   [cheshire "5.9.0"]
