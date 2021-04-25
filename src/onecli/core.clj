@@ -7,8 +7,9 @@
     [clojure.java.io :as io]
     [clojure.pprint :as pprint]
     [clojure.string :as string])
-(:import
-  (java.net URL)
+  (:import
+    (java.net
+      URL)
     (java.nio.file
       Files
       Paths
@@ -629,9 +630,9 @@
             (not (:suppress-return-output ret))
             (println (json/generate-string (dissoc ret :onecli))))
           (when (not (nil? teardown)) (teardown effective-options))
-            (if-let [return-code (:exit-code (:onecli ret))]
-              return-code
-              0))
+          (if-let [return-code (:exit-code (:onecli ret))]
+            return-code
+            0))
         (catch clojure.lang.ExceptionInfo e
           (exit-error
             (if-let [code (:exit-code (:onecli (ex-data e)))]
@@ -650,13 +651,13 @@
               {:error (str e)
                :problem :unknown-problem
                :stacktrace (stacktrace-string e)
-               :given-options effective-options})))))
-    (exit-error
-      1
-      (json/generate-string
-        {:error "Unknown command"
-         :problem :unknown-command
-         :given-options effective-options}))))
+               :given-options effective-options}))))
+      (exit-error
+        1
+        (json/generate-string
+          {:error "Unknown command"
+           :problem :unknown-command
+           :given-options effective-options})))))
 
 
 (defn default-spit

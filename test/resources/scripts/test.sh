@@ -56,7 +56,10 @@ answer=$(ONECLI_ITEM_ANONYMOUS_COWARD="I was never here" ONECLI_LIST_CONFIG_FILE
 }
 ALSO
 )
-if [ ! "${answer}" = '{"one":{"two":238,"three":543},"zed":{"a":true,"b":false},"afound":true,"bfound":true,"ifihadtodoitagain":"i would","anonymous-coward":"I was never here","commands":["options","show"],"fart":123}' ]
+
+expected='{"one":{"two":238,"three":543},"anonymous-coward":"I was never here","println":"setup","bfound":true,"filename":null,"commands":["options","show"],"fart":123,"ifihadtodoitagain":"i would","zed":{"a":true,"b":false},"afound":true}'
+
+if [ ! "${answer}" = "${expected}" ]
 then
     echo "AAAAH"
     exit 1
