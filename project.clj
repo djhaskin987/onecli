@@ -29,6 +29,8 @@
              :deploy {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]
                                      [cheshire "5.9.0"]
                                      [org.martinklepsch/clj-http-lite "0.4.3"]]}
+
+
              :dev {:dependencies [[pjstadig/humane-test-output "0.9.0"]
                                   [org.clojure/clojure "1.10.2-alpha1"]
                                   [cheshire "5.9.0"]
