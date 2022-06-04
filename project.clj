@@ -11,30 +11,33 @@
                                     :password :env/CLOJARS_PASSWORD
                                     :sign-releases true}]]
 
-  :dependencies [[org.clojure/clojure "1.10.2-alpha1"]
+  :dependencies [[org.clojure/clojure "1.11.1"]
                  [cheshire "5.9.0"]
+                 [clj-commons/clj-yaml "0.7.108"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]]
 
   :global-vars {*warn-on-reflection* true}
   ;;:repl-options {
   ;;               :init-ns onecli.core
   ;;               }
-  :profiles {:uberjar {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]
-                                      [cheshire "5.9.0"]
+  :profiles {:uberjar {:dependencies [[org.clojure/clojure "1.11.1"]
                                       [org.martinklepsch/clj-http-lite "0.4.3"]
-                                      [borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]]
+                                      [cheshire "5.9.0"]
+                                      [clj-commons/clj-yaml "0.7.108"]]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                        :main onecli.cli
                        :aot :all}
-             :deploy {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]
+             :deploy {:dependencies [[org.clojure/clojure "1.11.1"]
+                                     [org.martinklepsch/clj-http-lite "0.4.3"]
                                      [cheshire "5.9.0"]
-                                     [org.martinklepsch/clj-http-lite "0.4.3"]]}
+                                     [clj-commons/clj-yaml "0.7.108"]]}
 
 
              :dev {:dependencies [[pjstadig/humane-test-output "0.9.0"]
-                                  [org.clojure/clojure "1.10.2-alpha1"]
+                                  [org.clojure/clojure "1.11.1"]
+                                  [org.martinklepsch/clj-http-lite "0.4.3"]
                                   [cheshire "5.9.0"]
-                                  [org.martinklepsch/clj-http-lite "0.4.3"]]
+                                  [clj-commons/clj-yaml "0.7.108"]]
                    :plugins [[test2junit "1.3.3"]
                              [lein-licenses "0.2.2"]
                              [lein-print "0.1.0"]]
