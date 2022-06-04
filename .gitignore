@@ -17,6 +17,10 @@ profiles.clj
 /.idea
 /.calva
 
+
+# LSP
+.lsp/sqlite.db
+
 # native image builds
 /onecli-0.6.0-SNAPSHOT-standalone
 
