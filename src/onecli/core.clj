@@ -16,6 +16,7 @@
     Paths
     StandardOpenOption)))
 
+
 #_(defmacro dbg
     [body]
     `(let [x# ~body]
@@ -36,11 +37,11 @@
   [thing]
   (yaml/parse-string thing :keywords true))
 
-;;(extend-protocol
-;; YAMLCodec
-;;  Object
-;;  (encode [data] (str data))
-;;  (decode [data keywords] data))
+(extend-protocol
+ yaml/YAMLCodec
+  Object
+  (encode [data] (str data))
+  (decode [data keywords] data))
 
 (generate/add-encoder
  java.lang.Object

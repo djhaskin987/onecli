@@ -1,8 +1,17 @@
 (ns onecli.core-test
   (:require
     [clojure.test :refer :all]
-    [onecli.core :refer :all]))
+    [onecli.core :refer :all])
+  (:import
+   (java.nio.file
+    Paths)))
 
+
+(deftest test-generate-string
+  (testing "That yaml generate string works on objects."
+    (let [pwd (.toAbsolutePath (Paths/get "." (into-array java.lang.String [])))]
+    (is (= (str "path: " (str pwd) "\n")
+           (generate-string {:path pwd} :block))))))
 
 (deftest test-env-vars
   (testing "That no environment variables works."
@@ -43,12 +52,8 @@
                         "TESTING_JSON_ABC" "{\"rags\": [{\"to\": \"riches\", \"years\": 11},{\"to\": \"ashes\", \"years\": 12.2, \"pleasant\": false}]}"
                         "CLOG" "drain"
                         "TESTING_LIST_PETS" "horse,dog"}
-             :transforms {:gnomes (:int transforms)
-                          :money-bags (:float transforms)
-                          :hedge keyword}
              :aliases
              {"CLOG" "TESTING_ITEM_CLOGGED"}})))))
-
 
 (deftest test-arg-parser
   (testing "that no arguments doesn't fail."
@@ -95,12 +100,7 @@
                               "and"
                               "forever"]
                        :aliases
-                       {"-g" "--set-gnomes"}
-                       :transforms {:gnomes
-                                    (:int transforms)
-                                    :hedge keyword
-                                    :money-bags
-                                    (:float transforms)}}))))
+                       {"-g" "--set-gnomes"}}))))
   (testing "reset add"
     (is (=
           {:pets ["cat"]}
