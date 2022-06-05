@@ -394,7 +394,8 @@
   (let [s (java.io.StringWriter.)
         p (java.io.PrintWriter. s)]
     (.printStackTrace e p)
-    (str s)))
+    ;; tabs in string really throws off yaml, doesn't look nice
+    (string/replace (str s) "\t" "    ")))
 
 (defn help-meta-var
   [arg]

@@ -70,7 +70,7 @@ ALSO
 
 expected='{"one":{"two":238,"three":543},"anonymous-coward":"I was never here","println":"setup","bfound":true,"output-format":"json","filename":null,"commands":["options","show"],"fart":123,"again":"andagain\nandagain\nandagain","ifihadtodoitagain":"i would","zed":{"a":true,"b":false},"afound":true}'
 
-if [ ! "${answer}" = "${expected}" ]
+if [ "${answer}" != "${expected}" ]
 then
     echo "AAAAH"
     exit 1
@@ -104,9 +104,49 @@ zed:
   b: false
 afound: true'
 
-if [ ! "${answer}" = "${expected}" ]
+if [ "${answer}" != "${expected}" ]
 then
     echo "AAAAH"
     exit 1
 fi
 
+answer=$(java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" exc -o yaml || :)
+
+expected='given-options:
+  output-format: yaml
+  one:
+    two: 238
+    three: 543
+  zed:
+    a: true
+    b: false
+  commands:
+   - exc
+e: 1538
+g: 15.38
+c: why not?
+h: |-
+  multi
+  line
+  string
+b: false
+stacktrace: |
+  clojure.lang.ExceptionInfo: This is an exception. {:e 1538, :g 15.38, :c "why not?", :h "multi\nline\nstring", :b false, :d 1538N, :f 15.38M, :i "multi\n\tline\n\tstring\n\twith\n\ttabs", :a 1}
+      at onecli.cli$exc.invokeStatic(cli.clj:7)
+      at onecli.cli$exc.invoke(cli.clj:7)
+      at clojure.lang.Var.invoke(Var.java:384)
+      at onecli.core$go_BANG_.invokeStatic(core.clj:669)
+      at onecli.cli$_main.invokeStatic(cli.clj:71)
+      at onecli.cli$_main.doInvoke(cli.clj:46)
+      at clojure.lang.RestFn.applyTo(RestFn.java:137)
+      at onecli.cli.main(Unknown Source)
+d: !!float '\''1538'\''
+f: 15.38
+error: '\''clojure.lang.ExceptionInfo: This is an exception. {:e 1538, :g 15.38, :c "why not?", :h "multi\nline\nstring", :b false, :d 1538N, :f 15.38M, :i "multi\n\tline\n\tstring\n\twith\n\ttabs", :a 1}'\''
+i: "multi\n\tline\n\tstring\n\twith\n\ttabs"
+a: 1'
+if [ "${answer}" != "${expected}" ]
+then
+    echo "AAAAH"
+    exit 1
+fi

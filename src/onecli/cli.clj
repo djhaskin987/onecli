@@ -4,6 +4,22 @@
    [clojure.java.io :as io]
    [onecli.core :as core]))
 
+(defn exc
+  "
+  This throws an exception on purpose.
+  "
+  [_]
+  (throw (ex-info "This is an exception."
+         {:a 1
+          :b false
+          :c "why not?"
+          :d 1538N
+          :e 1538
+          :f 15.38M
+          :g 15.38
+          :h "multi\nline\nstring"
+          :i "multi\n\tline\n\tstring\n\twith\n\ttabs"
+          })))
 (defn a
   "
   This is the `a` subcommand help.
@@ -40,7 +56,8 @@
               :functions
               {["a"] 'onecli.cli/a
                ["a" "b"] 'onecli.cli/ab
-               ["c"] 'onecli.cli/c}
+               ["c"] 'onecli.cli/c
+               ["exc"] 'onecli.cli/exc}
               :cli-aliases
               {"-a" "--set-alpha"
                "-b" "--file-beta"
