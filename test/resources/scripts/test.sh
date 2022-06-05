@@ -82,20 +82,26 @@ again: "andagain\nandagain\nandagain"
 ALSO
 )
 
-expected='one: {two: 238, three: 543}
+expected='one:
+  two: 238
+  three: 543
 anonymous-coward: I was never here
 println: setup
 bfound: true
 output-format: yaml
 filename: null
-commands: [options, show]
+commands:
+ - options
+ - show
 fart: 123
 again: |-
   andagain
   andagain
   andagain
 ifihadtodoitagain: i would
-zed: {a: true, b: false}
+zed:
+  a: true
+  b: false
 afound: true'
 
 if [ ! "${answer}" = "${expected}" ]
