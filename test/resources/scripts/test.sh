@@ -150,3 +150,5 @@ then
     echo "AAAAH"
     exit 1
 fi
+
+answer=$(java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" exc -o yaml || :)

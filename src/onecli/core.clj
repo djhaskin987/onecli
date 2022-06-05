@@ -26,16 +26,16 @@
 
 (defn generate-string
   [thing style]
-  (if (= style :block)
+  (if (= style :yaml)
     (yaml/generate-string thing
                           :dumper-options {:indent 2
                                            :indicator-indent 1
-                                           :flow-style style})
+                                           :flow-style :block})
     (json/generate-string thing true)))
 
 (defn parse-string
   [thing]
-  (yaml/parse-string thing :keywords true))
+  (yaml/parse-string thing :safe true :allow-duplicate-keys true :keywords true))
 
 ;;(extend-protocol
 ;; yaml/YAMLCodec
@@ -390,12 +390,16 @@
 
 (defn- stacktrace-string
   "Gives back the string of the stacktrace of the given exception."
-  [^Exception e]
+  [^Exception e output-style]
   (let [s (java.io.StringWriter.)
         p (java.io.PrintWriter. s)]
     (.printStackTrace e p)
-    ;; tabs in string really throws off yaml, doesn't look nice
-    (string/replace (str s) "\t" "    ")))
+    (let [stackstring (str s)]
+      (if (= output-style :yaml)
+        ;; tabs in string really throws off yaml, doesn't look nice
+        (string/replace stackstring "\t" "    ")
+        stackstring))))
+
 
 (defn help-meta-var
   [arg]
@@ -649,8 +653,8 @@
           commands
           [])
         output-style (let [of (:output-format effective-options)]
-                       (cond (= of "json") :flow
-                             (= of "yaml") :block
+                       (cond (= of "json") :json
+                             (= of "yaml") :yaml
                              (nil? of) :block
                              :else (throw (ex-info (str "Invalid output format: "
                                                         of)
@@ -684,7 +688,7 @@
             (as-> (ex-data e) it
               (assoc it :error (str e))
               (assoc it :stacktrace
-                     (stacktrace-string e))
+                     (stacktrace-string e output-style))
               (assoc it :given-options effective-options))
             output-style)))
         (catch Exception e
@@ -693,7 +697,7 @@
            (generate-string
             {:error (str e)
              :problem :unknown-problem
-             :stacktrace (stacktrace-string e)
+             :stacktrace (stacktrace-string e output-style)
              :given-options effective-options}
             output-style))))
       (exit-error
