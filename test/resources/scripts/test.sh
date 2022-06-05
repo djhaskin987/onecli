@@ -62,12 +62,13 @@ ls ./onecli.json
 
 answer=$(ONECLI_ITEM_ANONYMOUS_COWARD="I was never here" ONECLI_LIST_CONFIG_FILES="./a.json,./b.json" java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" options show --add-config-files '-' --json-fart '123' << ALSO
 {
-    "ifihadtodoitagain": "i would"
+    "ifihadtodoitagain": "i would",
+    "again": "andagain\nandagain\nandagain"
 }
 ALSO
 )
 
-expected='{"one":{"two":238,"three":543},"anonymous-coward":"I was never here","println":"setup","bfound":true,"output-format":"json","filename":null,"commands":["options","show"],"fart":123,"ifihadtodoitagain":"i would","zed":{"a":true,"b":false},"afound":true}'
+expected='{"one":{"two":238,"three":543},"anonymous-coward":"I was never here","println":"setup","bfound":true,"output-format":"json","filename":null,"commands":["options","show"],"fart":123,"again":"andagain\nandagain\nandagain","ifihadtodoitagain":"i would","zed":{"a":true,"b":false},"afound":true}'
 
 if [ ! "${answer}" = "${expected}" ]
 then
@@ -77,26 +78,26 @@ fi
 
 answer=$(ONECLI_ITEM_ANONYMOUS_COWARD="I was never here" ONECLI_LIST_CONFIG_FILES="./a.json,./b.json" java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" options show --set-output-format yaml --add-config-files '-' --yaml-fart '123' << ALSO
 ifihadtodoitagain: i would
+again: "andagain\nandagain\nandagain"
 ALSO
 )
 
-expected='one:
-  two: 238
-  three: 543
+expected='one: {two: 238, three: 543}
 anonymous-coward: I was never here
 println: setup
 bfound: true
 output-format: yaml
 filename: null
-commands:
- - options
- - show
+commands: [options, show]
 fart: 123
+again: |-
+  andagain
+  andagain
+  andagain
 ifihadtodoitagain: i would
-zed:
-  a: true
-  b: false
+zed: {a: true, b: false}
 afound: true'
+
 if [ ! "${answer}" = "${expected}" ]
 then
     echo "AAAAH"

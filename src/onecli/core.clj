@@ -11,6 +11,13 @@
   (:import
    (java.net
     URL)
+   (org.yaml.snakeyaml
+     DumperOptions
+     DumperOptions$ScalarStyle
+     DumperOptions$FlowStyle
+     Yaml)
+   (org.yaml.snakeyaml.constructor SafeConstructor)
+   (org.yaml.snakeyaml.representer Representer)
    (java.nio.file
     Files
     Paths
@@ -24,13 +31,24 @@
        (flush)
        x#))
 
+(def ^DumperOptions dumper-options
+  (doto (DumperOptions.)
+    (.setSplitLines false)
+    (.setIndent 2)
+    (.setIndicatorIndent 1)
+    (.setAllowUnicode true)
+    (.setDefaultFlowStyle DumperOptions$FlowStyle/BLOCK)
+    (.setDefaultScalarStyle DumperOptions$ScalarStyle/LITERAL)))
+
+(def ^Yaml dumper-yaml
+  (let [loader (yaml/make-loader-options)
+        dumper (yaml/make-dumper-options dumper-options)]
+    (Yaml. (SafeConstructor. loader) (Representer.) dumper loader)))
+
 (defn generate-string
   [thing style]
   (if (= style :block)
-    (yaml/generate-string thing
-                          :dumper-options {:indent 2
-                                           :indicator-indent 1
-                                           :flow-style style})
+    (.dump ^Yaml dumper-yaml (yaml/encode thing))
     (json/generate-string thing true)))
 
 (defn parse-string
