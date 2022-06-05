@@ -1,1 +1,1 @@
-lein with-profile dev deploy clojars
+lein with-profile deploy deploy clojars
