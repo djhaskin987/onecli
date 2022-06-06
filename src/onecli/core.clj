@@ -37,12 +37,6 @@
   [thing]
   (yaml/parse-string thing :safe true :allow-duplicate-keys true :keywords true))
 
-;;(extend-protocol
-;; yaml/YAMLCodec
-;;  Object
-;;  (encode [data] (str data))
-;;  (decode [data keywords] data))
-
 (generate/add-encoder
  java.lang.Object
  (fn [obj jsonGenerator]
@@ -56,9 +50,7 @@
   (println msg)
   status)
 
-
 ;; UTF-8 by default :)
-
 
 (defn base-slurp
   [loc]
@@ -655,7 +647,7 @@
         output-style (let [of (:output-format effective-options)]
                        (cond (= of "json") :json
                              (= of "yaml") :yaml
-                             (nil? of) :block
+                             (nil? of) :json
                              :else (throw (ex-info (str "Invalid output format: "
                                                         of)
                                                    {:function ::go!
@@ -668,7 +660,8 @@
                    (not (nil? setup))
                    (or
                     (empty? effective-commands)
-                    (not (= (nth effective-commands (dec (count effective-commands)))
+                    (not (= (nth effective-commands (dec
+                                                      (count effective-commands)))
                             "help"))))
                 (func (setup effective-options))
                 (func effective-options))]
