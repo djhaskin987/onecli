@@ -6,12 +6,13 @@ All notable changes to this project will be documented in this file. This change
 ### Changed
 
 ## [0.8.0] - 2022-06-05
+### Added
+- Test proving that JSON slurped in using a YAML parser is still the same
+  as if it were a JSON parser, even in the presence of multiple keys.
+
 ### Fixed
 - Stacktraces in YAML look nice, but still are the same in JSON to fix for
   backwards compatibility
-- All JSON is slurped in using a YAML parser, but one which supports
-  duplicate keys, to preserve backwards compatibility with the old JSON
-  behavior.
 
 ## [0.7.0] - 2022-06-05
 ### Added
