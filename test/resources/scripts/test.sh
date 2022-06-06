@@ -72,7 +72,7 @@ expected='{"one":{"two":238,"three":543},"anonymous-coward":"I was never here","
 
 if [ "${answer}" != "${expected}" ]
 then
-    echo "AAAAH"
+    echo "Failed: first test, normal case."
     exit 1
 fi
 
@@ -106,12 +106,11 @@ afound: true'
 
 if [ "${answer}" != "${expected}" ]
 then
-    echo "AAAAH"
+    echo "Failed: second test, YAML output"
     exit 1
 fi
 
 answer=$(java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" exc -o yaml || :)
-
 expected='given-options:
   output-format: yaml
   one:
@@ -135,7 +134,7 @@ stacktrace: |
       at onecli.cli$exc.invokeStatic(cli.clj:7)
       at onecli.cli$exc.invoke(cli.clj:7)
       at clojure.lang.Var.invoke(Var.java:384)
-      at onecli.core$go_BANG_.invokeStatic(core.clj:669)
+      at onecli.core$go_BANG_.invokeStatic(core.clj:671)
       at onecli.cli$_main.invokeStatic(cli.clj:71)
       at onecli.cli$_main.doInvoke(cli.clj:46)
       at clojure.lang.RestFn.applyTo(RestFn.java:137)
@@ -147,8 +146,18 @@ i: "multi\n\tline\n\tstring\n\twith\n\ttabs"
 a: 1'
 if [ "${answer}" != "${expected}" ]
 then
-    echo "AAAAH"
+    echo "Failed: third test, YAML output of an exception"
     exit 1
 fi
 
-answer=$(java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" exc -o yaml || :)
+
+# Test that json multiple key last-wins behavior is preserved with the new yaml
+# update
+answer=$(java -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" --json-fire '{ "a": true, "a": 13, "a": false }' options show | jq -c .fire)
+expected='{"a":false}'
+
+if [ "${answer}" != "${expected}" ]
+then
+    echo "Failed: fourth test, JSON multiple key behavior is preserved"
+    exit 1
+fi

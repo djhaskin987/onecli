@@ -35,7 +35,10 @@
 
 (defn parse-string
   [thing]
-  (yaml/parse-string thing :safe true :allow-duplicate-keys true :keywords true))
+  (yaml/parse-string
+    thing
+    :safe true
+    :keywords true))
 
 (generate/add-encoder
  java.lang.Object
