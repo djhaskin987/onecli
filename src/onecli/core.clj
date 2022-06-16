@@ -484,6 +484,7 @@
 (defn go!
   [{:keys [args
            env
+           properties
            cli-aliases
            env-aliases
            available-option-packs
@@ -495,7 +496,12 @@
            setup
            teardown]
     :as params
-    :or {list-sep ","
+    :or {
+         env
+         (System/getenv)
+         properties
+         (System/getProperties)
+         list-sep ","
          map-sep "="
          cli-aliases
          {}
@@ -600,7 +606,7 @@
                          "."
                          program-name
                          ".yaml")]))
-            (if-let [home (System/getProperty "user.home")]
+            (if-let [home (get properties "user.home")]
               (or
                (try-file [home
                           (str
@@ -612,7 +618,7 @@
                            "."
                            program-name
                            ".yaml")]))))
-          (if-let [pwd (System/getProperty "user.dir")]
+          (if-let [pwd (get properties "user.dir")]
             (or
              (try-file
               [pwd (str

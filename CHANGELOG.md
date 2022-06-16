@@ -2,7 +2,9 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 ## [Unreleased]
 ### Added
-
+- Added a way for the user to provide properties instead of directly
+  examining system properties.
+- Added a default of env so that needn't be specified either.
 ### Changed
 
 ## [0.8.0] - 2022-06-05
